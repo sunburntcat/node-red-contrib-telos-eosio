@@ -4,7 +4,7 @@
   "description": "A Node-Red node designed to publish data to Telos or a different eosio blockchain",
   "main": "index.js",
   "dependencies": {
-    "eosjs": ">=20.0.3"
+    "eosjs": "^20.0.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -30,9 +30,9 @@
   },
   "homepage": "https://github.com/sunburntcat/node-red-contrib-telos-eosio#readme",
   "node-red": {
-      "nodes": {
-          "lower-case": "lower-case/lower-case.js",
-          "telos-transfer": "telos-transfer/telos-transfer.js"
-      }
+    "nodes": {
+      "lower-case": "lower-case/lower-case.js",
+      "telos-transfer": "telos-transfer/telos-transfer.js"
+    }
   }
 }

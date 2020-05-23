@@ -1,4 +1,4 @@
-//const { Api, JsonRpc, RpcError } = require('eosjs');
+const { Api, JsonRpc, RpcError } = require('eosjs');
 
 module.exports = function(RED) {
     function TelosTransferNode(config) {
