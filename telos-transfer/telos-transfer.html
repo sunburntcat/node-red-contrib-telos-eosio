@@ -1,0 +1,28 @@
+<! -- Placeholder for telos-eosio Node-Red html file -->
+
+<script type="text/javascript">
+    RED.nodes.registerType('telos-transfer',{
+        category: 'blockchain',
+        color: '#a6bbcf',
+        defaults: {
+            name: {value:""}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "file.png",
+        label: function() {
+            return this.name||"telos-transfer";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="telos-transfer">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="telos-transfer">
+    <p>A node that sends telos-based tokens to a requested account</p>
+</script>
