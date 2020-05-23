@@ -5,11 +5,12 @@
         category: 'blockchain',
         color: '#a6bbcf',
         defaults: {
-            name: {value:""}
+            recipient: {value:"", required: true},
+            amount: {value:"", required: true}
         },
         inputs:1,
-        outputs:1,
-        icon: "file.png",
+        outputs:0,
+        icon: "icons/blocks.png",
         label: function() {
             return this.name||"telos-transfer";
         }
@@ -18,11 +19,15 @@
 
 <script type="text/html" data-template-name="telos-transfer">
     <div class="form-row">
-        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
-        <input type="text" id="node-input-name" placeholder="Name">
+        <label for="node-input-recipient"><i class="icon-tag"></i> Receiving Account</label>
+        <input type="text" id="node-input-recipient" placeholder="binancecleos">
+    </div>
+    <div class="form-row">
+        <label for="node-input-amount"><i class="icon-tag"></i> Amount</label>
+        <input type="text" id="node-input-amount" placeholder="0.0">
     </div>
 </script>
 
 <script type="text/html" data-help-name="telos-transfer">
-    <p>A node that sends telos-based tokens to a requested account</p>
+    <p>A node that sends telos-based tokens to a requested account.</p>
 </script>
