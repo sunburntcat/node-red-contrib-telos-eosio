@@ -6,6 +6,7 @@
         color: '#a6bbcf',
         defaults: {
             blockchain: {value:"testnet", required: true},
+            chainid: {value:"1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f", required: true},
             endpoint: {value:"api-testnet", required: true},
             privkey: {value:"", required: true}
         },
@@ -22,11 +23,19 @@
                 if (select == "mainnet"){
                     $("#node-input-endpoint").append("<option value='api-mainnet'> https://telos.caleos.io </option>");
                     $("#node-input-customendpoint-row").hide();
+                    $("#node-input-chainid").prop('disabled',false);
+                    $("#node-input-chainid").val("4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11");
+                    $("#node-input-chainid").prop('disabled',true);
                 } else if (select == "testnet") {
                     $("#node-input-endpoint").append("<option value='api-testnet'> https://basho-api.telosuk.io  </option>");
                     $("#node-input-customendpoint-row").hide();
+                    $("#node-input-chainid").prop('disabled',false);
+                    $("#node-input-chainid").val("1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f");
+                    $("#node-input-chainid").prop('disabled',true);
                 } else if (select == "other") {
                     $("#node-input-customendpoint-row").show();
+                    $("#node-input-chainid").val("");
+                    $("#node-input-chainid").prop('disabled',false);
                 }
                 $("#node-input-endpoint").append("<option value='api-other'> Other </option>"); // Always allow for Other blockchain
 
@@ -51,6 +60,10 @@
             <option value="mainnet"> Telos Mainnet</option>
             <option value="other"> Other</option>
         </select>
+    </div>
+    <div class="form-row" id="node-input-chainid-row">
+        <label for="node-input-chainid"><i class="icon-tag"></i> Chain ID</label>
+        <input type="text" id="node-input-chainid" placeholder="" disabled>
     </div>
     <div class="form-row">
         <label for="node-input-endpoint"><i class="icon-tag"></i> Http Endpoint</label>
