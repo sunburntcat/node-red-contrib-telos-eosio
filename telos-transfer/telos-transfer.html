@@ -84,4 +84,55 @@
 
 <script type="text/html" data-help-name="telos-transfer">
     <p>A node that sends telos-based tokens to a requested account.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload
+            <span class="property-type">object</span>
+        </dt>
+        <dd> The data to pack into the eosio.token transfer action. </dd>
+
+        <dt class="optional">memo
+            <span class="property-type">string</span>
+        </dt>
+        <dd> The memo to include in the transfer. </dd>
+
+        <dt class="optional">authorization
+            <span class="property-type">object</span>
+        </dt>
+        <dd> The permission to use in the transfer. Default: "account@active" </dd>
+    </dl>
+
+    <h3>Details</h3>
+    <p>
+        The <code>msg.payload</code> input is required and should be in the following
+         JSON format:
+    </p>
+    <p>
+        <code>
+                {
+            <br>   from: 'useraaaaaaaa',
+            <br>   to: 'userbbbbbbbb',
+            <br>   quantity: '1.0000 EOS'
+            <br>}
+        </code>
+    </p>
+    <p>The <code>msg.memo</code> field can be used to include a simple optional message
+        with the transfer.
+        <br>It is important to note that exchanges like Newdex can
+        require a memo for certain orders with their API. Be sure to review your
+        exchange's API documentation to see how to handle deposits, if needed.
+    </p>
+    <p>
+        The <code>msg.authorization</code> input is optional and should be
+         in the following JSON format:
+    </p>
+    <p>
+        <code>
+            {
+            <br>   actor: 'useraaaaaaaa',
+            <br>   permission: 'active'
+            <br>}
+        </code>
+    </p>
 </script>
