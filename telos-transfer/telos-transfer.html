@@ -5,26 +5,49 @@
         category: 'blockchain',
         color: '#a6bbcf',
         defaults: {
-            recipient: {value:"", required: true},
-            amount: {value:"", required: true}
+            chainid: {value:"", required: true},
+            endpoint: {value:"eosvibes", required: true},
+            privkey: {value:"", required: true}
         },
         inputs:1,
         outputs:0,
         icon: "icons/blocks.png",
         label: function() {
             return this.name||"telos-transfer";
+        },
+        oneditprepare: function(){
+            $("#node-input-endpoint").change(function() {
+                var select = $("#node-input-endpoint option:selected").val();
+                if (select == "other"){
+                    $("#node-input-customendpoint-row").show();
+                } else {
+                    $("#node-input-customendpoint-row").hide();
+                }
+            });
         }
     });
 </script>
 
 <script type="text/html" data-template-name="telos-transfer">
     <div class="form-row">
-        <label for="node-input-recipient"><i class="icon-tag"></i> Receiving Account</label>
-        <input type="text" id="node-input-recipient" placeholder="binancecleos">
+        <label for="node-input-chainid"><i class="icon-tag"></i> Chain ID</label>
+        <input type="text" id="node-input-chainid" placeholder="">
     </div>
     <div class="form-row">
-        <label for="node-input-amount"><i class="icon-tag"></i> Amount</label>
-        <input type="text" id="node-input-amount" placeholder="0.0">
+        <label for="node-input-endpoint"><i class="icon-tag"></i> Nodeos Endpoint</label>
+        <select type="text" id="node-input-endpoint" style="display: inline-block; vertical-align: middle; width:60%;">
+            <option value="eosvibes"> https://telos.eosvibes.io:443 (Telos)</option>
+            <option value="greymass"> https://eos.greymass.com:443 (EOS)</option>
+            <option value="other"> Other</option>
+        </select>
+    </div>
+    <div class="form-row" id="node-input-customendpoint-row">
+        <label for="node-input-customendpoint"><i class="icon-tag"></i> Custom Endpoint</label>
+        <input type="text" id="node-input-customendpoint" placeholder="http://localhost:8888">
+    </div>
+    <div class="form-row">
+        <label for="node-input-privkey"><i class="icon-tag"></i> Private Key File</label>
+        <input type="text" id="node-input-privkey" placeholder="">
     </div>
 </script>
 
