@@ -5,8 +5,8 @@
         category: 'blockchain',
         color: '#a6bbcf',
         defaults: {
-            chainid: {value:"", required: true},
-            endpoint: {value:"eosvibes", required: true},
+            blockchain: {value:"testnet", required: true},
+            endpoint: {value:"api-testnet", required: true},
             privkey: {value:"", required: true}
         },
         inputs:1,
@@ -16,9 +16,24 @@
             return this.name||"telos-transfer";
         },
         oneditprepare: function(){
+            $("#node-input-blockchain").change(function() {
+                $("#node-input-endpoint").find('option').remove().end();  // Remove all API endpoint options
+                var select = $("#node-input-blockchain option:selected").val();
+                if (select == "mainnet"){
+                    $("#node-input-endpoint").append("<option value='api-mainnet'> https://telos.caleos.io </option>");
+                    $("#node-input-customendpoint-row").hide();
+                } else if (select == "testnet") {
+                    $("#node-input-endpoint").append("<option value='api-testnet'> https://basho-api.telosuk.io  </option>");
+                    $("#node-input-customendpoint-row").hide();
+                } else if (select == "other") {
+                    $("#node-input-customendpoint-row").show();
+                }
+                $("#node-input-endpoint").append("<option value='api-other'> Other </option>"); // Always allow for Other blockchain
+
+            });
             $("#node-input-endpoint").change(function() {
                 var select = $("#node-input-endpoint option:selected").val();
-                if (select == "other"){
+                if (select == "api-other"){
                     $("#node-input-customendpoint-row").show();
                 } else {
                     $("#node-input-customendpoint-row").hide();
@@ -30,15 +45,18 @@
 
 <script type="text/html" data-template-name="telos-transfer">
     <div class="form-row">
-        <label for="node-input-chainid"><i class="icon-tag"></i> Chain ID</label>
-        <input type="text" id="node-input-chainid" placeholder="">
+        <label for="node-input-blockchain"><i class="icon-tag"></i> Eosio Blockchain</label>
+        <select type="text" id="node-input-blockchain" style="display: inline-block; vertical-align: middle; width:60%;">
+            <option value="testnet"> Telos Testnet (Basho) </option>
+            <option value="mainnet"> Telos Mainnet</option>
+            <option value="other"> Other</option>
+        </select>
     </div>
     <div class="form-row">
-        <label for="node-input-endpoint"><i class="icon-tag"></i> Nodeos Endpoint</label>
+        <label for="node-input-endpoint"><i class="icon-tag"></i> Http Endpoint</label>
         <select type="text" id="node-input-endpoint" style="display: inline-block; vertical-align: middle; width:60%;">
-            <option value="eosvibes"> https://telos.eosvibes.io:443 (Telos)</option>
-            <option value="greymass"> https://eos.greymass.com:443 (EOS)</option>
-            <option value="other"> Other</option>
+            <option value="api-testnet"> https://basho-api.telosuk.io </option>
+            <option value="api-other"> Other</option>
         </select>
     </div>
     <div class="form-row" id="node-input-customendpoint-row">
