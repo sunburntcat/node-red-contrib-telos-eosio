@@ -29,18 +29,29 @@ module.exports = function(RED) {
         const rpc = new JsonRpc(node.endpoint, { fetch });
         const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
 
-        // Do a test of the blockchain
-        /*
+        // Test that chain ID is correct
         (async () => {
-            const resultJson = await rpc.get_block(1); //get the first block
-            result = JSON.stringify(resultJson, null, 2);
+            try {
+                const info = await rpc.get_info(); //get information from http endpoint
 
+                if (info.chain_id == node.chainid) { // check that chain id matches endpoint response
+                    console.log("Blockchain endpoint connection successfull.");
+                } else {
+                    console.log("Are you sure you are on the right blockchain?");
+                    console.log("The http endpoint you provided doesn't match the chain ID");
+                    console.log("Your provided chain ID: " + node.chainid);
+                    console.log("RPC response: " + info.chain_id);
+                }
+            } catch (e) {
+                console.log(e);
+                return;
+            }
 
-            setTimeout(function(){ console.log("Here's your json: \n" + result); }, 2000);
         })();
-        */
 
         node.on('input', function(msg) {
+            console.log(msg.payload.to);
+
             msg.payload = msg.payload.toLowerCase();
             node.send(msg);
         });

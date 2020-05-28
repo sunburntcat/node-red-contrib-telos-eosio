@@ -7,7 +7,7 @@
         defaults: {
             blockchain: {value:"testnet", required: true},
             chainid: {value:"1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f", required: true},
-            endpoint: {value:"https://telosapi.eosmetal.io/", required: true},
+            endpoint: {value:"https://basho-api.telosuk.io", required: true},
             customendpoint: {value:"", required: false},
             privkey: {value:"", required: true}
         },
@@ -28,7 +28,7 @@
                     $("#node-input-chainid").val("4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11");
                     $("#node-input-chainid").prop('disabled',true);
                 } else if (select == "testnet") {
-                    $("#node-input-endpoint").append("<option value='https://telosapi.eosmetal.io/'> https://telosapi.eosmetal.io/  </option>");
+                    $("#node-input-endpoint").append("<option value='https://basho-api.telosuk.io'> https://basho-api.telosuk.io </option>");
                     $("#node-input-customendpoint-row").hide();
                     $("#node-input-chainid").prop('disabled',false);
                     $("#node-input-chainid").val("1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f");
@@ -69,7 +69,7 @@
     <div class="form-row">
         <label for="node-input-endpoint"><i class="icon-tag"></i> Http Endpoint</label>
         <select type="text" id="node-input-endpoint" style="display: inline-block; vertical-align: middle; width:60%;">
-            <option value="https://telosapi.eosmetal.io/"> https://telosapi.eosmetal.io/ </option>
+            <option value="https://basho-api.telosuk.io"> https://basho-api.telosuk.io </option>
             <option value="other"> Other</option>
         </select>
     </div>
