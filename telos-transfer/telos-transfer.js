@@ -18,7 +18,6 @@ module.exports = function(RED) {
             node.endpoint = config.endpoint;
         }
         node.privkey = fs.readFileSync(config.privkey, 'utf8').trim();
-        node.inputtype = config.inputtype;
 
         // The following is for debugging. NEEDS TO BE REMOVED
         console.log("Chain ID: " + node.chainid);
@@ -51,56 +50,31 @@ module.exports = function(RED) {
 
         // This function defines what we do with out inputs
         node.on('input', function(msg) {
-
-            if (node.inputtype === 'action'){
-                // We first build and push transaction to our endpoint
-                (async () => {
-                    try {
-                        const result = await api.transact({
-                            actions: [{
-                                account: 'eosio.token',
-                                name: 'transfer',
-                                authorization: [{
-                                    actor: msg.payload.from,
-                                    permission: 'active',
-                                }],
-                                data: msg.payload
-                            }]
-                        }, {
-                            blocksBehind: 3,
-                            expireSeconds: 30
-                        }); // end api.transact
-                        if (!result.processed.error_code) { // If endpoint didn't give error
-                            console.log("Trx: "+result.transaction_id)
-                        } else {
-                            console.log(result);
-                        }
-                    } catch (e) {
-                        console.log(e);// Print any errors
-                    } // end try/catch
-                })(); // end asynch
-            } else if (node.inputtype === 'trx') {
-                // Suggestion for eosiot on-device signatures...
-                //   https://github.com/EOSIO/eosjs/blob/master/src/eosjs-api.ts
-                //     Function at Line 257 allows us to use the following function:
-                //        api.pushSignedTransaction
-                (async () => {
-                    try {
-                        const result = await api.pushSignedTransaction( // may need to fix args
-                            msg.payload.signatures,
-                            msg.payload.transaction
-                        );
-                        if (!result.processed.error_code) { // If endpoint didn't give error
-                            console.log("Trx: "+result.transaction_id)
-                        } else {
-                            console.log(result);
-                        }
-                    } catch (e) {
-                        console.log(e);// Print any errors
-                    }       // end try/catch
-                })();       // end asynch
-            }               // end if (inputtype)
-            node.send(msg); // continue sending message through to outputs if necessary
+            (async () => {
+                try {
+                    const result = await api.transact({
+                        actions: [{
+                            account: 'eosio.token',
+                            name: 'transfer',
+                            authorization: [{
+                                actor: msg.payload.from,
+                                permission: 'active',
+                            }],
+                            data: msg.payload
+                        }]
+                    }, {
+                        blocksBehind: 3,
+                        expireSeconds: 30
+                    }); // end api.transact
+                    if (!result.processed.error_code) { // If endpoint didn't give error
+                        console.log("Trx: "+result.transaction_id)
+                    } else {
+                        console.log(result);
+                    }
+                } catch (e) {
+                    console.log(e);// Print any errors
+                }           // end try/catch
+            })();           // end asynch
         });                 // end node.on(input)
     }
     RED.nodes.registerType("telos-transfer",TelosTransferNode);

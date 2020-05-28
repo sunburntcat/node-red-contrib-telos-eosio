@@ -1,7 +1,6 @@
-<! -- Placeholder for telos-eosio Node-Red html file -->
 
 <script type="text/javascript">
-    RED.nodes.registerType('telos-transfer',{
+    RED.nodes.registerType('telos-transact',{
         category: 'blockchain',
         color: '#a6bbcf',
         defaults: {
@@ -9,31 +8,32 @@
             chainid: {value:"1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f", required: true},
             endpoint: {value:"https://basho-api.telosuk.io", required: true},
             customendpoint: {value:"", required: false},
-            privkey: {value:"", required: true}
+            privkey: {value:"", required: true},
+            inputtype: {value:"action", required: true}
         },
         inputs:1,
         outputs:0,
         icon: "icons/blocks.png",
         label: function() {
-            return this.name||"telos-transfer";
+            return this.name||"telos-transact";
         },
         oneditprepare: function(){
             $("#node-input-blockchain").change(function() {
                 $("#node-input-endpoint").find('option').remove().end();  // Remove all API endpoint options
                 var select = $("#node-input-blockchain option:selected").val();
-                if (select == "mainnet"){
+                if (select === "mainnet"){
                     $("#node-input-endpoint").append("<option value='https://telos.caleos.io'> https://telos.caleos.io </option>");
                     $("#node-input-customendpoint-row").hide();
                     $("#node-input-chainid").prop('disabled',false);
                     $("#node-input-chainid").val("4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11");
                     $("#node-input-chainid").prop('disabled',true);
-                } else if (select == "testnet") {
+                } else if (select === "testnet") {
                     $("#node-input-endpoint").append("<option value='https://basho-api.telosuk.io'> https://basho-api.telosuk.io </option>");
                     $("#node-input-customendpoint-row").hide();
                     $("#node-input-chainid").prop('disabled',false);
                     $("#node-input-chainid").val("1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f");
                     $("#node-input-chainid").prop('disabled',true);
-                } else if (select == "other") {
+                } else if (select === "other") {
                     $("#node-input-customendpoint-row").show();
                     $("#node-input-chainid").val("");
                     $("#node-input-chainid").prop('disabled',false);
@@ -43,7 +43,7 @@
             });
             $("#node-input-endpoint").change(function() {
                 var select = $("#node-input-endpoint option:selected").val();
-                if (select == "other"){
+                if (select === "other"){
                     $("#node-input-customendpoint-row").show();
                 } else {
                     $("#node-input-customendpoint-row").hide();
@@ -53,7 +53,7 @@
     });
 </script>
 
-<script type="text/html" data-template-name="telos-transfer">
+<script type="text/html" data-template-name="telos-transact">
     <div class="form-row">
         <label for="node-input-blockchain"><i class="icon-tag"></i> Eosio Blockchain</label>
         <select type="text" id="node-input-blockchain" style="display: inline-block; vertical-align: middle; width:60%;">
@@ -81,9 +81,16 @@
         <label for="node-input-privkey"><i class="icon-tag"></i> Private Key File</label>
         <input type="text" id="node-input-privkey" placeholder="">
     </div>
+    <div class="form-row">
+        <label for="node-input-inputtype"><i class="icon-tag"></i> Incoming Payload Type</label>
+        <select type="text" id="node-input-inputtype" style="display: inline-block; vertical-align: middle; width:60%;">
+            <option value="action"> Action Data </option>
+            <option value="trx"> Pre-Signed Transaction</option>
+        </select>
+    </div>
 </script>
 
-<script type="text/html" data-help-name="telos-transfer">
+<script type="text/html" data-help-name="telos-transact">
     <p>A node that sends telos-based tokens to a requested account.</p>
 
     <h3>Inputs</h3>
