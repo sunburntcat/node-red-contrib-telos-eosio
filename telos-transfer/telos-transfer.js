@@ -43,16 +43,42 @@ module.exports = function(RED) {
                     console.log("RPC response: " + info.chain_id);
                 }
             } catch (e) {
-                console.log(e);
-                return;
+                console.log(e); // Print any timeout errors
             }
 
         })();
 
         node.on('input', function(msg) {
-            console.log(msg.payload.to);
 
-            msg.payload = msg.payload.toLowerCase();
+            // We build and push transaction to our endpoint
+            (async () => {
+                try {
+                    const result = await api.transact({
+                        actions: [{
+                            account: 'eosio.token',
+                            name: 'transfer',
+                            authorization: [{
+                                actor: msg.payload.from,
+                                permission: 'active',
+                            }],
+                            data: msg.payload
+                        }]
+                    }, {
+                        blocksBehind: 3,
+                        expireSeconds: 30
+                    });
+
+                    console.log(result);
+                } catch (e) {
+                    console.log(e);// Print any errors
+                }
+
+            })();
+
+
+            //console.log(msg.payload.to);
+
+            //msg.payload = msg.payload.toLowerCase();
             node.send(msg);
         });
     }
