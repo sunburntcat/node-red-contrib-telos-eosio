@@ -9,7 +9,8 @@
             chainid: {value:"1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f", required: true},
             endpoint: {value:"https://basho-api.telosuk.io", required: true},
             customendpoint: {value:"", required: false},
-            privkey: {value:"", required: true}
+            privkey: {value:"", required: true},
+            inputtype: {value:"action", required: true}
         },
         inputs:1,
         outputs:0,
@@ -80,6 +81,13 @@
     <div class="form-row">
         <label for="node-input-privkey"><i class="icon-tag"></i> Private Key File</label>
         <input type="text" id="node-input-privkey" placeholder="">
+    </div>
+    <div class="form-row">
+        <label for="node-input-inputtype"><i class="icon-tag"></i> Incoming Payload Type</label>
+        <select type="text" id="node-input-inputtype" style="display: inline-block; vertical-align: middle; width:60%;">
+            <option value="action"> Action Data </option>
+            <option value="trx"> Pre-Signed Transaction</option>
+        </select>
     </div>
 </script>
 
