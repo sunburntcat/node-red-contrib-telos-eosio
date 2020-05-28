@@ -3,7 +3,7 @@ const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig');      // devel
 const fetch = require('node-fetch');                                    // node only; not needed in browsers
 const { TextEncoder, TextDecoder } = require('util');                   // node only; native TextEncoder/Decoder
 
-var fs = require('fs');
+const fs = require('fs');
 
 module.exports = function(RED) {
     function TelosTransferNode(config) {
@@ -12,7 +12,7 @@ module.exports = function(RED) {
 
         //node.blockchain = config.blockchain; // Don't need. Chain ID should be enough
         node.chainid = config.chainid;
-        if (config.endpoint == "other") {
+        if (config.endpoint === "other") {
             node.endpoint = config.customendpoint;
         } else {
             node.endpoint = config.endpoint;
@@ -35,7 +35,7 @@ module.exports = function(RED) {
             try {
                 const info = await rpc.get_info(); //get information from http endpoint
 
-                if (info.chain_id == node.chainid) { // check that chain id matches endpoint response
+                if (info.chain_id === node.chainid) { // check that chain id matches endpoint response
                     console.log("Blockchain endpoint connection successfull.");
                 } else {
                     console.log("Are you sure you are on the right blockchain?");
@@ -52,7 +52,7 @@ module.exports = function(RED) {
         // This function defines what we do with out inputs
         node.on('input', function(msg) {
 
-            if (node.inputtype == 'action'){
+            if (node.inputtype === 'action'){
                 // We first build and push transaction to our endpoint
                 (async () => {
                     try {
@@ -70,12 +70,16 @@ module.exports = function(RED) {
                             blocksBehind: 3,
                             expireSeconds: 30
                         }); // end api.transact
-                        console.log(result);
+                        if (!result.processed.error_code) { // If endpoint didn't give error
+                            console.log("Trx: "+result.transaction_id)
+                        } else {
+                            console.log(result);
+                        }
                     } catch (e) {
                         console.log(e);// Print any errors
                     } // end try/catch
                 })(); // end asynch
-            } else if (node.inputtype == 'trx') {
+            } else if (node.inputtype === 'trx') {
                 // Suggestion for eosiot on-device signatures...
                 //   https://github.com/EOSIO/eosjs/blob/master/src/eosjs-api.ts
                 //     Function at Line 257 allows us to use the following function:
@@ -86,14 +90,18 @@ module.exports = function(RED) {
                             msg.payload.signatures,
                             msg.payload.transaction
                         );
-                        console.log(result);
+                        if (!result.processed.error_code) { // If endpoint didn't give error
+                            console.log("Trx: "+result.transaction_id)
+                        } else {
+                            console.log(result);
+                        }
                     } catch (e) {
                         console.log(e);// Print any errors
-                    } // end try/catch
-                })(); // end asynch
-            } // end if (inputtype)
+                    }       // end try/catch
+                })();       // end asynch
+            }               // end if (inputtype)
             node.send(msg); // continue sending message through to outputs if necessary
-        }); // end node.on(input)
+        });                 // end node.on(input)
     }
     RED.nodes.registerType("telos-transfer",TelosTransferNode);
 };
