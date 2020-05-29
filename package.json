@@ -35,7 +35,7 @@
     "nodes": {
       "lower-case": "lower-case/lower-case.js",
       "telos-transfer": "telos-transfer/telos-transfer.js",
-      "telos-transact": "telos-transact/telos-transact.js"
+      "telos-push": "telos-push/telos-push.js"
     }
   }
 }

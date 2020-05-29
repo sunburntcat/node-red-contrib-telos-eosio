@@ -1,6 +1,6 @@
 
 <script type="text/javascript">
-    RED.nodes.registerType('telos-transact',{
+    RED.nodes.registerType('telos-push',{
         category: 'blockchain',
         color: '#a6bbcf',
         defaults: {
@@ -15,7 +15,7 @@
         outputs:0,
         icon: "icons/blocks.png",
         label: function() {
-            return this.name||"telos-transact";
+            return this.name||"telos-push";
         },
         oneditprepare: function(){
             $("#node-input-blockchain").change(function() {
@@ -53,7 +53,7 @@
     });
 </script>
 
-<script type="text/html" data-template-name="telos-transact">
+<script type="text/html" data-template-name="telos-push">
     <div class="form-row">
         <label for="node-input-blockchain"><i class="icon-tag"></i> Eosio Blockchain</label>
         <select type="text" id="node-input-blockchain" style="display: inline-block; vertical-align: middle; width:60%;">
@@ -90,7 +90,7 @@
     </div>
 </script>
 
-<script type="text/html" data-help-name="telos-transact">
+<script type="text/html" data-help-name="telos-push">
     <p>A node that sends telos-based tokens to a requested account.</p>
 
     <h3>Inputs</h3>

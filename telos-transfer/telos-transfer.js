@@ -76,6 +76,6 @@ module.exports = function(RED) {
                 }           // end try/catch
             })();           // end asynch
         });                 // end node.on(input)
-    }
+    }                       // end TelosTransferNode definition
     RED.nodes.registerType("telos-transfer",TelosTransferNode);
 };

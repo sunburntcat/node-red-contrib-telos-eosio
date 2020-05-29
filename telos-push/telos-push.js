@@ -1,12 +1,13 @@
 const { Api, JsonRpc, RpcError } = require('eosjs');
 const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig');      // development only
+
 const fetch = require('node-fetch');                                    // node only; not needed in browsers
 const { TextEncoder, TextDecoder } = require('util');                   // node only; native TextEncoder/Decoder
 
 const fs = require('fs');
 
 module.exports = function(RED) {
-    function TelosTransactNode(config) {
+    function TelosPushNode(config) {
         RED.nodes.createNode(this,config);
         var node = this;
 
@@ -84,12 +85,14 @@ module.exports = function(RED) {
                 //   https://github.com/EOSIO/eosjs/blob/master/src/eosjs-api.ts
                 //     Function at Line 257 allows us to use the following function:
                 //        api.pushSignedTransaction
+                //let pushTransactionArgs: PushTransactionArgs  = {
+                let pushTransactionArgs = {
+                    transaction: msg.payload.transaction, // Should be uint8array
+                    signatures: [msg.payload.signature]
+                };
                 (async () => {
                     try {
-                        const result = await api.pushSignedTransaction( // may need to fix args
-                            msg.payload.signatures,
-                            msg.payload.transaction
-                        );
+                        const result = await api.pushSignedTransaction( pushTransactionArgs );
                         if (!result.processed.error_code) { // If endpoint didn't give error
                             console.log("Trx: "+result.transaction_id)
                         } else {
@@ -102,6 +105,6 @@ module.exports = function(RED) {
             }               // end if (inputtype)
             node.send(msg); // continue sending message through to outputs if necessary
         });                 // end node.on(input)
-    }
-    RED.nodes.registerType("telos-transact",TelosTransactNode);
+    }                       // end TelosTransactNode definition
+    RED.nodes.registerType("telos-push",TelosPushNode);
 };
