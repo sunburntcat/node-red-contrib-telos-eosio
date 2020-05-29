@@ -60,6 +60,8 @@ module.exports = function(RED) {
                     try {
                         //1) determine the account name from current node information
                         //     Rule: First 12 characters, but for every digit, we do MOD(digit,5)+1 so all numbers are 1 to 5
+                        console.log(node.id);
+
                         //2) If account doesn't exist,
                         //     Create account with RAM and delegated CPU/NET
                         //        https://developers.eos.io/manuals/eosjs/v21.0/how-to-guides/how-to-create-an-account
