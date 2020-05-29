@@ -54,23 +54,22 @@ module.exports = function(RED) {
         node.on('input', function(msg) {
 
             if (node.inputtype === 'action'){
-                // We first build and push transaction to our endpoint
+                // We first build and push transaction to our endpoit
+
                 (async () => {
                     try {
-                        const result = await api.transact({
-                            actions: [{
-                                account: 'eosio.token',
-                                name: 'transfer',
-                                authorization: [{
-                                    actor: msg.payload.from,
-                                    permission: 'active',
-                                }],
-                                data: msg.payload
-                            }]
-                        }, {
-                            blocksBehind: 3,
-                            expireSeconds: 30
-                        }); // end api.transact
+                        //1) determine the account name from current node information
+                        //     Rule: First 12 characters, but for every digit, we do MOD(digit,5)+1 so all numbers are 1 to 5
+                        //2) If account doesn't exist,
+                        //     Create account with RAM and delegated CPU/NET
+                        //        https://developers.eos.io/manuals/eosjs/v21.0/how-to-guides/how-to-create-an-account
+                        //3) If eosio table on the contract doesn't exist,
+                        //     Create new eosio table
+                        //4) Loop over each payload object variable
+                        //     Check that each variable is present on the eosio table. Remember that columns can't be
+                        //        added to eosio table without deleting all data on the table first
+                        //     Append the data as a new row in the table
+
                         if (!result.processed.error_code) { // If endpoint didn't give error
                             console.log("Trx: "+result.transaction_id)
                         } else {
@@ -88,7 +87,7 @@ module.exports = function(RED) {
                 //let pushTransactionArgs: PushTransactionArgs  = {
                 let pushTransactionArgs = {
                     transaction: msg.payload.transaction, // Should be uint8array
-                    signatures: [msg.payload.signature]
+                    signatures: [msg.payload.signature]   // Should be string beginning with SIG_K
                 };
                 (async () => {
                     try {
