@@ -6,11 +6,16 @@ const { TextEncoder, TextDecoder } = require('util');                   // node 
 
 const fs = require('fs');
 
+const helper = require('../lib/helper.js'); // Import functions
+
 module.exports = function(RED) {
     function TelosPushNode(config) {
         RED.nodes.createNode(this,config);
         var node = this;
 
+        if (1){ // REMOVE. Replace with check to see if user provided name
+            node.name = helper.generate_rand_name();
+        }
         //node.blockchain = config.blockchain; // Don't need. Chain ID should be enough
         node.chainid = config.chainid;
         if (config.endpoint === "other") {
@@ -21,11 +26,6 @@ module.exports = function(RED) {
         node.privkey = fs.readFileSync(config.privkey, 'utf8').trim();
         node.inputtype = config.inputtype;
 
-        // The following is for debugging. NEEDS TO BE REMOVED
-        console.log("Chain ID: " + node.chainid);
-        console.log("Endpoint: " + node.endpoint);
-        console.log("Private key: " + node.privkey);
-
         // Initialize eojs API
         const signatureProvider = new JsSignatureProvider([node.privkey]);
         const rpc = new JsonRpc(node.endpoint, { fetch });
@@ -34,8 +34,8 @@ module.exports = function(RED) {
         // Test that chain ID is correct
         (async () => {
             try {
+                // UNCOMMENT FOLLOWING 2 LINES
                 const info = await rpc.get_info(); //get information from http endpoint
-
                 if (info.chain_id === node.chainid) { // check that chain id matches endpoint response
                     console.log("Blockchain endpoint connection successfull.");
                 } else {
@@ -54,13 +54,10 @@ module.exports = function(RED) {
         node.on('input', function(msg) {
 
             if (node.inputtype === 'action'){
-                // We first build and push transaction to our endpoit
+                // We first build and push transaction to our endpoint
 
                 (async () => {
                     try {
-                        //1) determine the account name from current node information
-                        //     Rule: First 12 characters, but for every digit, we do MOD(digit,5)+1 so all numbers are 1 to 5
-                        console.log(node.id);
 
                         //2) If account doesn't exist,
                         //     Create account with RAM and delegated CPU/NET
@@ -72,11 +69,13 @@ module.exports = function(RED) {
                         //        added to eosio table without deleting all data on the table first
                         //     Append the data as a new row in the table
 
+                        /*
                         if (!result.processed.error_code) { // If endpoint didn't give error
                             console.log("Trx: "+result.transaction_id)
                         } else {
                             console.log(result);
                         }
+                        */
                     } catch (e) {
                         console.log(e);// Print any errors
                     } // end try/catch
