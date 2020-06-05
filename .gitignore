@@ -1,0 +1,13 @@
+.idea
+.idea/*
+.DS_Store
+lib/test.html
+package-lock.json
+node_modules
+node_modules/*
+devices.csv
+flows.json
+eos_keystore.txt
+telos_keystore.txt
+./telos-push
+telos-push/*
