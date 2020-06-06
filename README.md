@@ -1,13 +1,25 @@
-This repository will eventually be an NPM package meant to be deployed for using a few node types in Node-Red.
+![Screenshot](images/telos_node_screenshot.png)
 
-The package contains the following nodes:
-    lower-case (boilerplate node-red example)
-    telos-transfer
+# Telos Node-Red NPM Package
 
-Usage:
+Telos is a public eosio blockchain run by independent people around the world. This repository is for the development of a node-red NPM module that connects data to the blockchain.
+
+Here you will find the javascript and HTML code for the "telos-transfer" node as well as the "telos-push" in a future version.
+
+## Direct Usage
 
 After downloading this repository, you will need to install the project dependencies. This can be done with:
 
+```
 npm install
+```
 
 You should see a package-lock.json file and a folder called node_modules that includes eosjs libraries for interacting with the blockchain.
+
+## Example flow usage
+
+The example flow files require other NPM node-red packages to work properly. Install the twitter API node by doing the following:
+
+```
+npm install node-red-node-twitter
+```
