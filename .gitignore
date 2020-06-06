@@ -9,5 +9,3 @@ devices.csv
 flows.json
 eos_keystore.txt
 telos_keystore.txt
-./telos-push
-telos-push/*
