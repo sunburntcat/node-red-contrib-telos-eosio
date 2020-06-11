@@ -59,6 +59,36 @@ module.exports = function(RED) {
                 (async () => {
                     try {
 
+
+                        switch (await helper.check_account_status('heztcmzsguge', rpc, RpcError)) {
+                            case 5:
+                                console.log("Account name doesn't exist.");
+                                // Create new account
+                                // Create new eosio table with given payload inputs
+                                break;
+                            case 4:
+                                console.log("Account doesn't have correct permission.");
+                                // NOTE: Likely means user wants to put table on an account they already own
+                                // Add new eosio permission to account
+                                //    If it doesn't work, have user choose random name or specify different one
+                                // Create new eosio table with given payload inputs
+                                break;
+                            case 3:
+                                console.log("Account has no eosio table.");
+                                // Create new eosio table with the given payload inputs
+                                break;
+                            case 2:
+                                console.log("Account's eosio table doesn't have the right columns.");
+                                // Store off the entire table
+                                // Delete all the data on the table
+                                // Create new eosio table with the given payload inputs
+                                // Add back the rows that were deleted with NaNs in the new columns
+                                break;
+                            case 1:
+                                console.log("Account is ready to go.");
+                        }
+
+                        //if (accountInfo.total_resources.net_weight)
                         //2) If account doesn't exist,
                         //     Create account with RAM and delegated CPU/NET
                         //        https://developers.eos.io/manuals/eosjs/v21.0/how-to-guides/how-to-create-an-account
