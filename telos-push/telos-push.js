@@ -16,6 +16,7 @@ module.exports = function(RED) {
         if (1){ // REMOVE. Replace with check to see if user provided name
             node.name = helper.generate_rand_name();
         }
+
         //node.blockchain = config.blockchain; // Don't need. Chain ID should be enough
         node.chainid = config.chainid;
         if (config.endpoint === "other") {
@@ -60,10 +61,10 @@ module.exports = function(RED) {
                     try {
 
 
-                        switch (await helper.check_account_status('heztcmzsguge', rpc, RpcError)) {
+                        switch (await helper.check_account_status(node.name, rpc, RpcError)) {
                             case 5:
-                                console.log("Account name doesn't exist.");
-                                // Create new account
+                                console.log("New account name "+node.name+" is free on the blockchain.");
+                                helper.create_new_account(node.name, api);
                                 // Create new eosio table with given payload inputs
                                 break;
                             case 4:
@@ -87,6 +88,7 @@ module.exports = function(RED) {
                             case 1:
                                 console.log("Account is ready to go.");
                         }
+
 
                         //if (accountInfo.total_resources.net_weight)
                         //2) If account doesn't exist,
