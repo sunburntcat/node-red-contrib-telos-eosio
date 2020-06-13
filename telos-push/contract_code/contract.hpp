@@ -20,9 +20,22 @@ CONTRACT iotdata : public contract {
                   , float field10
                   );
 
+
+    ACTION updatefields(name nodeid,
+                  , string field1,
+                  , string field2
+                  , string field3
+                  , string field4
+                  , string field5
+                  , string field6
+                  , string field7
+                  , string field8
+                  , string field9
+                  , string field10
+                  );
+
   private:
 
-    // Unused variables will be commented out
     TABLE data {
       name nodeid;
       float f1;
@@ -40,6 +53,24 @@ CONTRACT iotdata : public contract {
       auto  primary_key() const { return nodeid; }
     };
     typedef multi_index<name("data"), data> data_table;
+
+    TABLE fields {
+      name nodeid;
+      string f1;
+      string f2;
+      string f3;
+      string f4;
+      string f5;
+      string f6;
+      string f7;
+      string f8;
+      string f9;
+      string f10;
+
+      // Set primary key to nodeid which is an eosio name which is a uint64_t
+      auto  primary_key() const { return nodeid; }
+    };
+    typedef multi_index<name("fields"), fields> fields_table;
 
     float missing_value = -9999;
 
