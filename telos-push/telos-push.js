@@ -66,6 +66,12 @@ module.exports = function(RED) {
                                 console.log("New account name "+node.name+" is free on the blockchain.");
                                 helper.create_new_account(node.name, api);
                                 // Create new eosio table with given payload inputs
+                                //   User can't be expected to compile their own ABI file, as they would have to install the CDT
+                                //   Suggest creating static ABI and WASM files using EOS Studio with two tables
+                                //      1) Names of the fields (matches payload inputs; possibly char* )
+                                //      2) Data for 10 columns (with NaN for missing fields)
+                                //   This ABI and WASM file can be deployed to any account using the following reference:
+                                //     https://developers.eos.io/manuals/eosjs/v21.0/how-to-guides/how-to-deploy-a-smart-contract
                                 break;
                             case 4:
                                 console.log("Account doesn't have correct permission.");
@@ -80,26 +86,15 @@ module.exports = function(RED) {
                                 break;
                             case 2:
                                 console.log("Account's eosio table doesn't have the right columns.");
-                                // Store off the entire table
+                                // Store off the entire table (onto demux?)
                                 // Delete all the data on the table
                                 // Create new eosio table with the given payload inputs
                                 // Add back the rows that were deleted with NaNs in the new columns
                                 break;
                             case 1:
                                 console.log("Account is ready to go.");
+                                // Append to current eosio table
                         }
-
-
-                        //if (accountInfo.total_resources.net_weight)
-                        //2) If account doesn't exist,
-                        //     Create account with RAM and delegated CPU/NET
-                        //        https://developers.eos.io/manuals/eosjs/v21.0/how-to-guides/how-to-create-an-account
-                        //3) If eosio table on the contract doesn't exist,
-                        //     Create new eosio table
-                        //4) Loop over each payload object variable
-                        //     Check that each variable is present on the eosio table. Remember that columns can't be
-                        //        added to eosio table without deleting all data on the table first
-                        //     Append the data as a new row in the table
 
                         /*
                         if (!result.processed.error_code) { // If endpoint didn't give error
