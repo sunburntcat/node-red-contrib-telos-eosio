@@ -1,4 +1,4 @@
-#include <contract.hpp>
+#include <noderedtelos.hpp>
 
 using namespace std;
 using namespace eosio;
