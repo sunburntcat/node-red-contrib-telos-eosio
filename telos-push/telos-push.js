@@ -13,9 +13,9 @@ module.exports = function(RED) {
         RED.nodes.createNode(this,config);
         var node = this;
 
-        if (1){ // REMOVE. Replace with check to see if user provided name
-            node.name = helper.generate_rand_name();
-        }
+        //if (1){ // REMOVE. Replace with check to see if user provided name
+        //    node.name = helper.generate_rand_name();
+        //}
 
         //node.blockchain = config.blockchain; // Don't need. Chain ID should be enough
         node.chainid = config.chainid;
