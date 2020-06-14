@@ -26,6 +26,7 @@ module.exports = function(RED) {
         }
         node.privkey = fs.readFileSync(config.privkey, 'utf8').trim();
         node.inputtype = config.inputtype;
+        node.parentname = 'noderedtelos';
 
         // Initialize eojs API
         const signatureProvider = new JsSignatureProvider([node.privkey]);
@@ -61,10 +62,20 @@ module.exports = function(RED) {
                     try {
 
 
-                        switch (await helper.check_account_status(node.name, rpc, RpcError)) {
+                        switch (await helper.check_account_status(node.parentname, fs, rpc, RpcError)) {
                             case 5:
-                                console.log("New account name "+node.name+" is free on the blockchain.");
-                                helper.create_new_account(node.name, api);
+                                console.log("Sorry, your Telos account "+node.parentname+" doesn't seem to exist.");
+                                break;
+                            case 4:
+                                console.log("Account doesn't have enough RAM for new eosio table.");
+                                // If allowing for automatic resource allocation
+                                  console.log("Purchasing more RAM.");
+                                break;
+                            case 3:
+                                console.log("Account has no eosio table.");
+                                // Contract delployment is currently 195KB of RAM
+                                //helper.buy_ram(node.parentname, 220000, api);
+                                break;
                                 // Create new eosio table with given payload inputs
                                 //   User can't be expected to compile their own ABI file, as they would have to install the CDT
                                 //   Suggest creating static ABI and WASM files using EOS Studio with two tables
@@ -72,18 +83,10 @@ module.exports = function(RED) {
                                 //      2) Data for 10 columns (with NaN for missing fields)
                                 //   This ABI and WASM file can be deployed to any account using the following reference:
                                 //     https://developers.eos.io/manuals/eosjs/v21.0/how-to-guides/how-to-deploy-a-smart-contract
-                                break;
-                            case 4:
-                                console.log("Account doesn't have correct permission.");
                                 // NOTE: Likely means user wants to put table on an account they already own
                                 // Add new eosio permission to account
                                 //    If it doesn't work, have user choose random name or specify different one
                                 // Create new eosio table with given payload inputs
-                                break;
-                            case 3:
-                                console.log("Account has no eosio table.");
-                                // Create new eosio table with the given payload inputs
-                                break;
                             case 2:
                                 console.log("Account's eosio table doesn't have the right columns.");
                                 // Store off the entire table (onto demux?)
