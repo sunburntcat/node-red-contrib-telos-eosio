@@ -52,6 +52,26 @@ module.exports = function(RED) {
 
         })();
 
+        (async () => {
+            switch (await helper.prepare_account(node.parentname, fs, rpc, RpcError)) {
+                case 3:
+                    console.log("Sorry, your Telos account " + node.parentname + " doesn't seem to exist.");
+                    console.log("Check that it exists and is spelled correctly.");
+                    return;
+                case 2:
+                    console.log("Sorry, your Telos account already has a smart contract deployed to it.");
+                    console.log("Please create and/or enter a new account.");
+                    return;
+                case 1:
+                    console.log("Sorry, there was an issue converting Telos to RAM.");
+                    console.log("Ensure your account balance is adequate.");
+                    return;
+                case 0:
+                    console.log("Account suitable for data write.");
+                    return;
+            }
+        })();
+
         // This function defines what we do with out inputs
         node.on('input', function(msg) {
 
@@ -61,43 +81,6 @@ module.exports = function(RED) {
                 (async () => {
                     try {
 
-
-                        switch (await helper.check_account_status(node.parentname, fs, rpc, RpcError)) {
-                            case 5:
-                                console.log("Sorry, your Telos account "+node.parentname+" doesn't seem to exist.");
-                                break;
-                            case 4:
-                                console.log("Account doesn't have enough RAM for new eosio table.");
-                                // If allowing for automatic resource allocation
-                                  console.log("Purchasing more RAM.");
-                                break;
-                            case 3:
-                                console.log("Account has no eosio table.");
-                                // Contract delployment is currently 195KB of RAM
-                                //helper.buy_ram(node.parentname, 220000, api);
-                                break;
-                                // Create new eosio table with given payload inputs
-                                //   User can't be expected to compile their own ABI file, as they would have to install the CDT
-                                //   Suggest creating static ABI and WASM files using EOS Studio with two tables
-                                //      1) Names of the fields (matches payload inputs; possibly char* )
-                                //      2) Data for 10 columns (with NaN for missing fields)
-                                //   This ABI and WASM file can be deployed to any account using the following reference:
-                                //     https://developers.eos.io/manuals/eosjs/v21.0/how-to-guides/how-to-deploy-a-smart-contract
-                                // NOTE: Likely means user wants to put table on an account they already own
-                                // Add new eosio permission to account
-                                //    If it doesn't work, have user choose random name or specify different one
-                                // Create new eosio table with given payload inputs
-                            case 2:
-                                console.log("Account's eosio table doesn't have the right columns.");
-                                // Store off the entire table (onto demux?)
-                                // Delete all the data on the table
-                                // Create new eosio table with the given payload inputs
-                                // Add back the rows that were deleted with NaNs in the new columns
-                                break;
-                            case 1:
-                                console.log("Account is ready to go.");
-                                // Append to current eosio table
-                        }
 
                         /*
                         if (!result.processed.error_code) { // If endpoint didn't give error
