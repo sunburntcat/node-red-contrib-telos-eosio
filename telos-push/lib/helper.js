@@ -31,6 +31,8 @@ module.exports = {
                 ) {
                     // Contract is not one we recognize.
                     return 2;
+                } else {
+                    return 0; // Account has correct ABI contract
                 }
             } else { // There is no contract applied yet
 
@@ -40,7 +42,11 @@ module.exports = {
                     console.log("Converting Telos to RAM for smart contract deployment.");
                     if (buy_ram(account, 220000, api) !== 0) { // Contract deployment requires about 195KB RAM
                         return 1; // Account doesn't have enough TLOS/RAM for contract deployment
+                    } else {
+                        console.log("RAM Quota looks good for contract deployment.");
                     }
+                } else {
+                    console.log("RAM Quota looks good for contract deployment.");
                 }
 
                 // Convert ABI and WASM into hex strings
@@ -65,8 +71,53 @@ module.exports = {
                 abiDefinitions.serialize(buffer, abiJSON);
                 serializedAbiHexString = Buffer.from(buffer.asUint8Array()).toString('hex');
 
+                // Create actions payload
+                var trx = {};
+                trx.actions = [{},{}];
+                trx.actions[0].account = "eosio";
+                trx.actions[0].name = "setcode";
+                trx.actions[0].authorization = {
+                    "actor": account ,
+                    "permission": "active"
+                };
+                trx.actions[0].data = {
+                    "account": account,
+                    "vmtype": "0",
+                    "vmversion": "0",
+                    "code": wasmHexString
+                };
+                trx.actions[1].account = "eosio";
+                trx.actions[1].name = "setabi";
+                trx.actions[1].authorization = {
+                    "actor": account ,
+                    "permission": "active"
+                };
+                trx.actions[1].data = {
+                    "account": account,
+                    "abi": serializedAbiHexString
+                };
+
+                const tapos = {};
+                tapos.blocksBehind = 3;
+                tapos.expireSeconds = 30;
+
+                try {
+                    msg = "Deploying eosio contract tables to your account";
+                    console.log(msg);
+
+                    // Push the whole transaction to the blockchain
+                    const result = await api.transact(trx, tapos);
+                    if (!result.processed.error_code) { // If endpoint didn't give error
+                        console.log("Trx: "+result.transaction_id);
+                        return 0;
+                    } else {
+                        console.log(result);
+                    }
+                } catch (e) {
+                    console.log(e); // Print any endpoint connection errors
+                }
+
             }
-            return 0; // Passes all the tests.
 
         } catch (e) {
             if (e instanceof RpcError) // Should specify error due to 'unknown key'
