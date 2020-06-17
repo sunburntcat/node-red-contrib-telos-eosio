@@ -6,12 +6,11 @@ module.exports = {
     prepare_account: async function (account, fs, rpc, RpcError) {
         /*
         Returns the following status:
-            1) Account is ready
-                account name exists, has correct ABI deployed, has enough RAM to post data
-            2) Account is ready except incorrect eosio table doesn't have correct variable names
-            3) Account is ready except no eosio table
-            4) Account exists but doesn't have correct iot permission
-            5) Account name doesn't exist
+            0) Account is ready
+                account name exists, has correct ABI deployed
+            1) Account exists, but doens't have enough TLOS balance to buy RAM and deploy contract
+            2) Account has a different contract already applied
+            3) Account doesn't exist
 
             NOTE: CPU/NET resources will not be handled here. Instead they are checked every telos-push inject.
          */
@@ -47,26 +46,8 @@ module.exports = {
                 // Deploy smart contract there
 
             }
-
             return 0; // Passes all the tests.
 
-            //    return 5
-
-            /* // No longer concerned about permissions
-            var permissionIndex = -1;
-
-            for (var i=0; i < accountInfo.permissions.length; i++){
-                //if (accountInfo.permissions[i].perm_name === 'iot')
-                if (accountInfo.permissions[i].perm_name === 'active') // REMOVE AFTER TESTING
-                {
-                    permissionIndex = i;
-                    // Should also check that permission's required_auth.accounts.permission.actor is set to the user's acct
-                }
-            }
-            if (permissionIndex < 0) {
-                return 4; // IoT permission wasn't found
-            }
-            */
         } catch (e) {
             if (e instanceof RpcError) // Should specify error due to 'unknown key'
             {
@@ -75,6 +56,56 @@ module.exports = {
         }
 
         //`console.log(accountInfo.permissions[0].required_auth);
+
+    },
+
+    parse_injection: function (node, msg, api) {
+
+        const acctName = node.parentName;
+        const tableIndex = node.id;
+
+        if (node.inputtype === 'action'){
+            // We first build and push transaction to our endpoint
+
+            (async () => {
+                try {
+
+
+                    /*
+                    if (!result.processed.error_code) { // If endpoint didn't give error
+                        console.log("Trx: "+result.transaction_id)
+                    } else {
+                        console.log(result);
+                    }
+                    */
+                } catch (e) {
+                    console.log(e);// Print any errors
+                } // end try/catch
+            })(); // end asynch
+        } else if (node.inputtype === 'trx') {
+            // Suggestion for eosiot on-device signatures...
+            //   https://github.com/EOSIO/eosjs/blob/master/src/eosjs-api.ts
+            //     Function at Line 257 allows us to use the following function:
+            //        api.pushSignedTransaction
+            //let pushTransactionArgs: PushTransactionArgs  = {
+            let pushTransactionArgs = {
+                transaction: msg.payload.transaction, // Should be uint8array
+                signatures: [msg.payload.signature]   // Should be string beginning with SIG_K
+            };
+            (async () => {
+                try {
+                    const result = await api.pushSignedTransaction( pushTransactionArgs );
+                    if (!result.processed.error_code) { // If endpoint didn't give error
+                        console.log("Trx: "+result.transaction_id)
+                    } else {
+                        console.log(result);
+                    }
+                } catch (e) {
+                    console.log(e);// Print any errors
+                }       // end try/catch
+            })();       // end asynch
+        }               // end if (inputtype)
+        node.send(msg); // continue sending message through to outputs if necessary
 
     },
 

@@ -6,7 +6,7 @@ const { TextEncoder, TextDecoder } = require('util');                   // node 
 
 const fs = require('fs');
 
-const helper = require('../lib/helper.js'); // Import functions
+const helper = require('./lib/helper.js'); // Import functions
 
 module.exports = function(RED) {
     function TelosPushNode(config) {
@@ -52,6 +52,7 @@ module.exports = function(RED) {
 
         })();
 
+        // Get account details and prepare for data injections
         (async () => {
             switch (await helper.prepare_account(node.parentname, fs, rpc, RpcError)) {
                 case 3:
@@ -68,56 +69,12 @@ module.exports = function(RED) {
                     return;
                 case 0:
                     console.log("Account suitable for data write.");
+                    node.on('input', function(msg) {
+                        helper.parse_injection(node,msg,api);
+                    });
                     return;
             }
         })();
-
-        // This function defines what we do with out inputs
-        node.on('input', function(msg) {
-
-            if (node.inputtype === 'action'){
-                // We first build and push transaction to our endpoint
-
-                (async () => {
-                    try {
-
-
-                        /*
-                        if (!result.processed.error_code) { // If endpoint didn't give error
-                            console.log("Trx: "+result.transaction_id)
-                        } else {
-                            console.log(result);
-                        }
-                        */
-                    } catch (e) {
-                        console.log(e);// Print any errors
-                    } // end try/catch
-                })(); // end asynch
-            } else if (node.inputtype === 'trx') {
-                // Suggestion for eosiot on-device signatures...
-                //   https://github.com/EOSIO/eosjs/blob/master/src/eosjs-api.ts
-                //     Function at Line 257 allows us to use the following function:
-                //        api.pushSignedTransaction
-                //let pushTransactionArgs: PushTransactionArgs  = {
-                let pushTransactionArgs = {
-                    transaction: msg.payload.transaction, // Should be uint8array
-                    signatures: [msg.payload.signature]   // Should be string beginning with SIG_K
-                };
-                (async () => {
-                    try {
-                        const result = await api.pushSignedTransaction( pushTransactionArgs );
-                        if (!result.processed.error_code) { // If endpoint didn't give error
-                            console.log("Trx: "+result.transaction_id)
-                        } else {
-                            console.log(result);
-                        }
-                    } catch (e) {
-                        console.log(e);// Print any errors
-                    }       // end try/catch
-                })();       // end asynch
-            }               // end if (inputtype)
-            node.send(msg); // continue sending message through to outputs if necessary
-        });                 // end node.on(input)
     }                       // end TelosTransactNode definition
     RED.nodes.registerType("telos-push",TelosPushNode);
 };
