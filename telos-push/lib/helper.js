@@ -69,17 +69,17 @@ module.exports = {
                     abiJSON
                 );
                 abiDefinitions.serialize(buffer, abiJSON);
-                serializedAbiHexString = Buffer.from(buffer.asUint8Array()).toString('hex');
+                const serializedAbiHexString = Buffer.from(buffer.asUint8Array()).toString('hex');
 
                 // Create actions payload
                 var trx = {};
                 trx.actions = [{},{}];
                 trx.actions[0].account = "eosio";
                 trx.actions[0].name = "setcode";
-                trx.actions[0].authorization = {
+                trx.actions[0].authorization = [{
                     "actor": account ,
                     "permission": "active"
-                };
+                }];
                 trx.actions[0].data = {
                     "account": account,
                     "vmtype": "0",
@@ -88,10 +88,10 @@ module.exports = {
                 };
                 trx.actions[1].account = "eosio";
                 trx.actions[1].name = "setabi";
-                trx.actions[1].authorization = {
+                trx.actions[1].authorization = [{
                     "actor": account ,
                     "permission": "active"
-                };
+                }];
                 trx.actions[1].data = {
                     "account": account,
                     "abi": serializedAbiHexString
@@ -118,7 +118,6 @@ module.exports = {
                 }
 
             }
-
         } catch (e) {
             if (e instanceof RpcError) // Should specify error due to 'unknown key'
             {
