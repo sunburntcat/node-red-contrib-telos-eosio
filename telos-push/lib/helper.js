@@ -3,7 +3,7 @@ var _ = require('lodash');
 
 module.exports = {
 
-    prepare_account: async function (account, fs, rpc, RpcError) {
+    prepare_account: async function (account, fs, api, rpc, RpcError, Serialize) {
         /*
         Returns the following status:
             0) Account is ready
@@ -17,7 +17,7 @@ module.exports = {
 
         try { // First check if account exists
             const accountInfo = await rpc.get_account(account);
-            const accountAbi = await rpc.get_abi("mtgsg2agrhcu");
+            const accountAbi = await rpc.get_abi(account);
 
             if ("abi" in accountAbi) { // Account already has contract applied.
 
@@ -34,16 +34,36 @@ module.exports = {
                 }
             } else { // There is no contract applied yet
 
+
                 // Check if we have enough RAM to apply a contract on the account
                 if (accountInfo.ram_quota - accountInfo.ram_usage < 200000) {
                     console.log("Converting Telos to RAM for smart contract deployment.");
-                    //if (buy_ram(account, 220000, api) !== 0) { // Contract deployment requires about 195KB RAM
-                    if (0) {
+                    if (buy_ram(account, 220000, api) !== 0) { // Contract deployment requires about 195KB RAM
                         return 1; // Account doesn't have enough TLOS/RAM for contract deployment
                     }
                 }
 
-                // Deploy smart contract there
+                // Convert ABI and WASM into hex strings
+                const wasmFilePath = 'telos-push/contract_code/noderedtelos.wasm';
+                const abiFilePath = 'telos-push/contract_code/noderedtelos.abi';
+
+                const wasmHexString = fs.readFileSync(wasmFilePath).toString('hex');
+
+                const buffer = new Serialize.SerialBuffer({
+                    textEncoder: api.textEncoder,
+                    textDecoder: api.textDecoder,
+                });
+
+                let abiJSON = JSON.parse(fs.readFileSync(abiFilePath, 'utf8'));
+                const abiDefinitions = api.abiTypes.get('abi_def');
+
+                abiJSON = abiDefinitions.fields.reduce(
+                    (acc, { name: fieldName }) =>
+                        Object.assign(acc, { [fieldName]: acc[fieldName] || [] }),
+                    abiJSON
+                );
+                abiDefinitions.serialize(buffer, abiJSON);
+                serializedAbiHexString = Buffer.from(buffer.asUint8Array()).toString('hex');
 
             }
             return 0; // Passes all the tests.

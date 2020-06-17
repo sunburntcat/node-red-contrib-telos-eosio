@@ -1,4 +1,4 @@
-const { Api, JsonRpc, RpcError } = require('eosjs');
+const { Api, JsonRpc, RpcError, Serialize } = require('eosjs');
 const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig');      // development only
 
 const fetch = require('node-fetch');                                    // node only; not needed in browsers
@@ -54,7 +54,7 @@ module.exports = function(RED) {
 
         // Get account details and prepare for data injections
         (async () => {
-            switch (await helper.prepare_account(node.parentname, fs, rpc, RpcError)) {
+            switch (await helper.prepare_account(node.parentname, fs, api, rpc, RpcError, Serialize)) {
                 case 3:
                     console.log("Sorry, your Telos account " + node.parentname + " doesn't seem to exist.");
                     console.log("Check that it exists and is spelled correctly.");
