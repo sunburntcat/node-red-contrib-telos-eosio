@@ -26,7 +26,8 @@ module.exports = function(RED) {
         }
         node.privkey = fs.readFileSync(config.privkey, 'utf8').trim();
         node.inputtype = config.inputtype;
-        node.parentname = 'noderedtelos';
+        //node.parentname = 'noderedtelos';
+        node.parentname = 'heztcmzsguge';
 
         // Initialize eojs API
         const signatureProvider = new JsSignatureProvider([node.privkey]);
