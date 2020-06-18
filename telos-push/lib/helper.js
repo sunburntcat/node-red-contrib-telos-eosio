@@ -5,14 +5,13 @@ const trans = require('./transaction_modules.js');
 
 module.exports = {
 
-    prepare_account: async function (account, fs, api, rpc, RpcError, Serialize) {
+    prepare_account: async function (account, fs, api, rpc, ecc, RpcError, Serialize) {
         /*
         Returns the following status:
             0) Account is ready
                 account name exists, has correct ABI deployed
             1) Account exists, but doens't have enough TLOS balance to buy RAM and deploy contract
             2) Account has a different contract already applied
-            3) Account doesn't exist
 
             NOTE: CPU/NET resources will not be handled here. Instead they are checked every telos-push inject.
          */

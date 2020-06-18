@@ -1,5 +1,6 @@
 const { Api, JsonRpc, RpcError, Serialize } = require('eosjs');
 const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig');      // development only
+const ecc = require('eosjs-ecc');
 
 const fetch = require('node-fetch');                                    // node only; not needed in browsers
 const { TextEncoder, TextDecoder } = require('util');                   // node only; native TextEncoder/Decoder
@@ -25,17 +26,20 @@ module.exports = function(RED) {
             node.endpoint = config.endpoint;
         }
         node.privkey = fs.readFileSync(config.privkey, 'utf8').trim();
+        node.pubkey = ecc.privateToPublic(node.privkey);
+
         node.inputtype = config.inputtype;
         //node.parentname = 'noderedtelos';
         node.parentname = 'heztcmzsguge';
+        //node.parentname = 'heztcmzsgugf';
 
         // Initialize eojs API
         const signatureProvider = new JsSignatureProvider([node.privkey]);
         const rpc = new JsonRpc(node.endpoint, { fetch });
         const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
 
-        // Test that chain ID is correct
         (async () => {
+            // Test that chain ID is correct
             try {
                 // UNCOMMENT FOLLOWING 2 LINES
                 const info = await rpc.get_info(); //get information from http endpoint
@@ -46,20 +50,39 @@ module.exports = function(RED) {
                     console.log("The http endpoint you provided doesn't match the chain ID");
                     console.log("Your provided chain ID: " + node.chainid);
                     console.log("RPC response: " + info.chain_id);
+                    return;
                 }
             } catch (e) {
                 console.log(e); // Print any timeout errors
             }
 
-        })();
+            // Check that account exists and fits private key
+            try {
+                // Get account info
+                const accountInfo = await rpc.get_account(node.parentname);
 
-        // Get account details and prepare for data injections
-        (async () => {
-            switch (await helper.prepare_account(node.parentname, fs, api, rpc, RpcError, Serialize)) {
-                case 3:
-                    console.log("Sorry, your Telos account " + node.parentname + " doesn't seem to exist.");
-                    console.log("Check that it exists and is spelled correctly.");
+                // Loop through the various permissions
+                for (var i=0; i < accountInfo.permissions.length; i++){
+                    if (accountInfo.permissions[i].perm_name === 'active')
+                    {
+                        const authKeys = accountInfo.permissions[i].required_auth.keys;
+                        if (authKeys.length > 1 || authKeys[0].key !== node.pubkey) {
+                           console.log("The account key you provided doesn't match the 'active' permission");
+                           return;
+                        }
+                    }
+                }
+            } catch (e) {
+                if (e.json.error.details[0].message.includes("unknown key"))
+                {
+                    console.log("The provided account name "+node.parentname+" doesn't seem to exist.");
                     return;
+                }
+
+            }
+
+            // Get account details and prepare for data injections
+            switch (await helper.prepare_account(node.parentname, fs, api, rpc, ecc, RpcError, Serialize)) {
                 case 2:
                     console.log("Sorry, your Telos account already has a smart contract deployed to it.");
                     console.log("Please create and/or enter a new account.");
