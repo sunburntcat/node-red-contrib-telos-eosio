@@ -30,8 +30,8 @@ module.exports = function(RED) {
 
         node.inputtype = config.inputtype;
         //node.parentname = 'noderedtelos';
-        node.parentname = 'heztcmzsguge';
-        //node.parentname = 'heztcmzsgugf';
+        //node.parentname = 'heztcmzsguge';
+        node.parentname = 'heztcmzsgugf';
 
         // Initialize eojs API
         const signatureProvider = new JsSignatureProvider([node.privkey]);
@@ -81,6 +81,72 @@ module.exports = function(RED) {
 
             }
 
+            // Compare account's ABI to the one found in the repo
+            try {
+                const accountAbi = await rpc.get_abi(node.parentname);
+
+                if ("abi" in accountAbi) { // Contract exists
+
+                    // Read the ABI file found inside the repository
+                    const repoAbi = JSON.parse(fs.readFileSync('telos-push/contract_code/noderedtelos.abi', 'utf8'));
+
+                    // Check if ABI's properties are different from the repository's ABI
+                    if (!_.isEqual(accountAbi.abi.actions, repoAbi.actions) ||
+                        !_.isEqual(accountAbi.abi.tables, repoAbi.tables) ||
+                        !_.isEqual(accountAbi.abi.structs, repoAbi.structs)
+                    ) {
+                        // Contract is not one we recognize.
+                        console.log("A contract with a different ABI already exists on the account.");
+                        console.log("Please input a different account name.");
+                        return;
+                    } else { /* The contract has the right ABI */}
+
+                } else { // There is no contract applied yet
+
+                    // Check if we have enough RAM to apply a contract on the account
+                    if (accountInfo.ram_quota - accountInfo.ram_usage < 200000) {
+                        if (trans.buy_ram(account, account, 220000, api) !== 0) { // Contract deployment requires about 195KB RAM
+                            console.log("TLOS balance too low for contract deployment");
+                            return;
+                        } else { /* RAM purchase successful */ }
+                    } else { /* Have enough RAM to deploy the contract */ }
+
+                    // Convert ABI and WASM into hex strings
+                    const wasmFilePath = 'telos-push/contract_code/noderedtelos.wasm';
+                    const wasmHexString = fs.readFileSync(wasmFilePath).toString('hex');
+                    const abiFilePath = 'telos-push/contract_code/noderedtelos.abi';
+                    const buffer = new Serialize.SerialBuffer({
+                        textEncoder: api.textEncoder,
+                        textDecoder: api.textDecoder,
+                    });
+                    let abiJSON = JSON.parse(fs.readFileSync(abiFilePath, 'utf8'));
+                    const abiDefinitions = api.abiTypes.get('abi_def');
+                    abiJSON = abiDefinitions.fields.reduce(
+                        (acc, { name: fieldName }) =>
+                            Object.assign(acc, { [fieldName]: acc[fieldName] || [] }),
+                        abiJSON
+                    );
+                    abiDefinitions.serialize(buffer, abiJSON);
+                    const serializedAbiHexString = Buffer.from(buffer.asUint8Array()).toString('hex');
+
+                    trans.deploy_contract(account, wasmHexString, serializedAbiHexString, api);
+
+                }
+            } catch (e) {
+                if (e instanceof RpcError) // Should specify error due to 'unknown key'
+                {
+                    console.log("Unexpected RPC error when checking account's contract.");
+                    return;
+                }
+            }
+
+            console.log("Node looks good.");
+
+            node.on('input', function(msg){
+                helper.parse_injection(node,msg,api);
+            });
+
+            /*
             // Get account details and prepare for data injections
             switch (await helper.prepare_account(node.parentname, fs, api, rpc, ecc, RpcError, Serialize)) {
                 case 2:
@@ -98,7 +164,8 @@ module.exports = function(RED) {
                     });
                     return;
             }
-        })();
+            */
+        })(); // End of async
     }                       // end TelosTransactNode definition
     RED.nodes.registerType("telos-push",TelosPushNode);
 };
