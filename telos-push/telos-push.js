@@ -27,9 +27,9 @@ module.exports = function(RED) {
         node.pubkey = ecc.privateToPublic(node.privkey);
 
         node.inputtype = config.inputtype;
-        //node.parentname = 'noderedtelos';
+        node.parentname = 'noderedtelos';
         //node.parentname = 'heztcmzsguge';
-        node.parentname = 'heztcmzsgugf';
+        //node.parentname = 'heztcmzsgugf';
 
         // Initialize eojs API
         const signatureProvider = new JsSignatureProvider([node.privkey]);
@@ -37,6 +37,7 @@ module.exports = function(RED) {
         const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
 
         (async () => {
+
             // Test that chain ID is correct
             try {
                 // UNCOMMENT FOLLOWING 2 LINES
@@ -144,33 +145,12 @@ module.exports = function(RED) {
 
         console.log("Node looks good.");
 
+        // Function that runs every time data is injected
         node.on('input', function(msg){
-            const acctName = node.parentName;
-            const tableIndex = node.id;
+            trans.payload_to_blockchain(node.parentname, node.id, msg.payload, api);
+            node.send(msg); // continue sending message through to outputs if necessary
         });
 
-            /*
-            // Get account details and prepare for data injections
-            switch (await helper.prepare_account(node.parentname, fs, api, rpc, ecc, RpcError, Serialize)) {
-                case 2:
-                    console.log("Sorry, your Telos account already has a smart contract deployed to it.");
-                    console.log("Please create and/or enter a new account.");
-                    return;
-                case 1:
-                    console.log("Sorry, there was an issue converting Telos to RAM.");
-                    console.log("Ensure your account balance is adequate.");
-                    return;
-                case 0:
-                    console.log("Account suitable for data write.");
-                    node.on('input', function(msg) {
-                        helper.parse_injection(node,msg,api);
-                    });
-                    return;
-            }
-
-            */
-
-        node.send(msg); // continue sending message through to outputs if necessary
     }                       // end TelosTransactNode definition
     RED.nodes.registerType("telos-push",TelosPushNode);
 };

@@ -1,58 +1,60 @@
 
+// Pushes transaction to the blockchain
+async function push_trx(trx, tapos, api) {
+    try {
+        const result = await api.transact(trx, tapos);
+        if (!result.processed.error_code) { // If endpoint didn't give error
+            console.log("Trx: " + result.transaction_id);
+            return 0;
+        } else {
+            console.log("API Endpoint gave the following eosio-based error:");
+            console.log(result);
+            return 1;
+        }
+    } catch (e) {
+        console.log("API Error while trying to send transaction.");
+        console.log(e); // Print any errors
+        return 1;
+    }
+
+}
+
+async function push_presigned_trx(trx, signature) {
+    /*
+     NOTE:
+     trx is uint8array
+     signature is a string beginning with SIG_K
+
+     Suggestion for eosiot on-device signatures...
+       https://github.com/EOSIO/eosjs/blob/master/src/eosjs-api.ts
+         Function at Line 257 allows us to use the following function:
+            api.pushSignedTransaction
+    */
+    try {
+        const result = await api.pushSignedTransaction(
+            {
+                "transaction": trx,
+                "signatures": [signature]
+            } );
+        if (!result.processed.error_code) { // If endpoint didn't give error
+            console.log("Trx: " + result.transaction_id);
+            return 0;
+        } else {
+            console.log("API Endpoint gave the following eosio-based error:");
+            console.log(result);
+            return 1;
+        }
+    } catch (e) {
+        console.log("API Error while trying to send transaction.");
+        console.log(e); // Print any errors
+        return 1;
+    }
+
+}
+
+
 module.exports = {
 
-    // Pushes transaction to the blockchain
-    push_trx: async function(trx, tapos, api) {
-        try {
-            const result = await api.transact(trx, tapos);
-            if (!result.processed.error_code) { // If endpoint didn't give error
-                console.log("Trx: " + result.transaction_id);
-                return 0;
-            } else {
-                console.log("API Endpoint gave the following eosio-based error:");
-                console.log(result);
-                return 1;
-            }
-        } catch (e) {
-            console.log("API Error while trying to send transaction.");
-            console.log(e); // Print any errors
-            return 1;
-        }
-
-    },
-
-    push_presigned_tx: async function(trx, signature) {
-        /*
-         NOTE:
-         trx is uint8array
-         signature is a string beginning with SIG_K
-
-         Suggestion for eosiot on-device signatures...
-           https://github.com/EOSIO/eosjs/blob/master/src/eosjs-api.ts
-             Function at Line 257 allows us to use the following function:
-                api.pushSignedTransaction
-        */
-        try {
-            const result = await api.pushSignedTransaction(
-                {
-                    "transaction": trx,
-                    "signatures": [signature]
-                } );
-            if (!result.processed.error_code) { // If endpoint didn't give error
-                console.log("Trx: " + result.transaction_id);
-                return 0;
-            } else {
-                console.log("API Endpoint gave the following eosio-based error:");
-                console.log(result);
-                return 1;
-            }
-        } catch (e) {
-            console.log("API Error while trying to send transaction.");
-            console.log(e); // Print any errors
-            return 1;
-        }
-
-    },
 
     create_new_account: async function (parent, name, api) {
         // New account data is complicated so we will build it first
@@ -209,5 +211,51 @@ module.exports = {
         return push_trx(trx, tapos, api);
 
     },
+
+    payload_to_blockchain: async function(account, tableIndex, payload, api) {
+
+        // Create actions payload
+        var trx = {};
+        trx.actions = [{},{}];
+        trx.actions[0].account = account;
+        trx.actions[0].name = "updatefields";
+        trx.actions[0].authorization = [{
+            "actor": account ,
+            "permission": "active"
+        }];
+        trx.actions[1].account = account;
+        trx.actions[1].name = "updatedata";
+        trx.actions[1].authorization = [{
+            "actor": account ,
+            "permission": "active"
+        }];
+
+        const missing = "-9999";
+        var jsonString1 = '{"nodeid": "'+tableIndex+'"';
+        var jsonString2 = '{"nodeid": "'+tableIndex+'"';
+        var counter = 1;
+        //for (var key in payload) {
+        for (let [key, value] of Object.entries(payload)) {
+            jsonString1 += ', "field'+counter+'": "'+key+'"';
+            jsonString2 += ', "field'+counter+'": "'+value+'"';
+            counter++;
+        }
+        for (counter; counter<11; counter++) {
+            jsonString1 += ', "field'+counter+'": "'+missing+'"';
+            jsonString2 += ', "field'+counter+'":  '+missing;
+        }
+        jsonString1 += '}';
+        jsonString2 += '}';
+        trx.actions[0].data = JSON.parse(jsonString1);
+        trx.actions[1].data = JSON.parse(jsonString2);
+
+        const tapos = {};
+        tapos.blocksBehind = 3;
+        tapos.expireSeconds = 30;
+
+        console.log("Writing data...");
+        return push_trx(trx, tapos, api);
+
+    }
 
 };
