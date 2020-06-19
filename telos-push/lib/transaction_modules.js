@@ -9,10 +9,45 @@ module.exports = {
                 console.log("Trx: " + result.transaction_id);
                 return 0;
             } else {
+                console.log("API Endpoint gave the following eosio-based error:");
                 console.log(result);
                 return 1;
             }
         } catch (e) {
+            console.log("API Error while trying to send transaction.");
+            console.log(e); // Print any errors
+            return 1;
+        }
+
+    },
+
+    push_presigned_tx: async function(trx, signature) {
+        /*
+         NOTE:
+         trx is uint8array
+         signature is a string beginning with SIG_K
+
+         Suggestion for eosiot on-device signatures...
+           https://github.com/EOSIO/eosjs/blob/master/src/eosjs-api.ts
+             Function at Line 257 allows us to use the following function:
+                api.pushSignedTransaction
+        */
+        try {
+            const result = await api.pushSignedTransaction(
+                {
+                    "transaction": trx,
+                    "signatures": [signature]
+                } );
+            if (!result.processed.error_code) { // If endpoint didn't give error
+                console.log("Trx: " + result.transaction_id);
+                return 0;
+            } else {
+                console.log("API Endpoint gave the following eosio-based error:");
+                console.log(result);
+                return 1;
+            }
+        } catch (e) {
+            console.log("API Error while trying to send transaction.");
             console.log(e); // Print any errors
             return 1;
         }

@@ -6,17 +6,15 @@ const fetch = require('node-fetch');                                    // node 
 const { TextEncoder, TextDecoder } = require('util');                   // node only; native TextEncoder/Decoder
 
 const fs = require('fs');
+var _ = require('lodash');
 
-const helper = require('./lib/helper.js'); // Import functions
+const trans = require('./lib/transaction_modules.js');
+
 
 module.exports = function(RED) {
     function TelosPushNode(config) {
         RED.nodes.createNode(this,config);
         var node = this;
-
-        //if (1){ // REMOVE. Replace with check to see if user provided name
-        //    node.name = helper.generate_rand_name();
-        //}
 
         //node.blockchain = config.blockchain; // Don't need. Chain ID should be enough
         node.chainid = config.chainid;
@@ -82,6 +80,7 @@ module.exports = function(RED) {
             }
 
             // Compare account's ABI to the one found in the repo
+            //   Deploy nodered contract if necessary
             try {
                 const accountAbi = await rpc.get_abi(node.parentname);
 
@@ -129,6 +128,7 @@ module.exports = function(RED) {
                     abiDefinitions.serialize(buffer, abiJSON);
                     const serializedAbiHexString = Buffer.from(buffer.asUint8Array()).toString('hex');
 
+                    // Check
                     trans.deploy_contract(account, wasmHexString, serializedAbiHexString, api);
 
                 }
@@ -140,11 +140,14 @@ module.exports = function(RED) {
                 }
             }
 
-            console.log("Node looks good.");
+        })(); // End of async
 
-            node.on('input', function(msg){
-                helper.parse_injection(node,msg,api);
-            });
+        console.log("Node looks good.");
+
+        node.on('input', function(msg){
+            const acctName = node.parentName;
+            const tableIndex = node.id;
+        });
 
             /*
             // Get account details and prepare for data injections
@@ -164,8 +167,10 @@ module.exports = function(RED) {
                     });
                     return;
             }
+
             */
-        })(); // End of async
+
+        node.send(msg); // continue sending message through to outputs if necessary
     }                       // end TelosTransactNode definition
     RED.nodes.registerType("telos-push",TelosPushNode);
 };
