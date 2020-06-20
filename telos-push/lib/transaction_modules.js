@@ -216,46 +216,33 @@ module.exports = {
 
     },
 
-    payload_to_blockchain: async function(account, tableIndex, payload, api) {
+    payload_to_blockchain: async function(account, actionName, payload, api) {
 
         // Create actions payload
         var trx = {};
         trx.actions = [{},{}];
         trx.actions[0].account = account;
-        trx.actions[0].name = "updatefields";
+        trx.actions[0].name = actionName;
         trx.actions[0].authorization = [{
             "actor": account ,
             "permission": "active"
         }];
-        trx.actions[1].account = account;
-        trx.actions[1].name = "updatedata";
-        trx.actions[1].authorization = [{
-            "actor": account ,
-            "permission": "active"
-        }];
 
-        const missing = "-9999";
-        //var jsonString1 = '{"nodeid": "'+tableIndex+'"';
-        //var jsonString2 = '{"nodeid": "'+tableIndex+'"';
-        //var jsonString1 = '{"nodeid": "'+account+'"';
-        //var jsonString2 = '{"nodeid": "'+account+'"';
-        var jsonString1 = '{"nodeid": "liohiv54fv1m"';
-        var jsonString2 = '{"nodeid": "liohiv54fv1m"';
-        var counter = 1;
-        //for (var key in payload) {
+        // Simply set the
+        trx.actions[0].data = payload;
+
+        /* For old noderedtelos contract
         for (let [key, value] of Object.entries(payload)) {
-            jsonString1 += ', "field'+counter+'": "'+key+'"';
-            jsonString2 += ', "field'+counter+'": "'+value+'"';
+            jsonString += ', "field'+counter+'": "'+key+'"';
             counter++;
         }
         for (counter; counter<11; counter++) {
-            jsonString1 += ', "field'+counter+'": "'+missing+'"';
-            jsonString2 += ', "field'+counter+'":  '+missing;
+            jsonString += ', "field'+counter+'": "'+missing+'"';
         }
-        jsonString1 += '}';
-        jsonString2 += '}';
-        trx.actions[0].data = JSON.parse(jsonString1);
-        trx.actions[1].data = JSON.parse(jsonString2);
+        jsonString += '}';
+        trx.actions[0].data = JSON.parse(jsonString);
+
+         */
 
         const tapos = {};
         tapos.blocksBehind = 3;

@@ -29,7 +29,7 @@ module.exports = function(RED) {
         node.inputtype = config.inputtype;
         //node.parentname = 'noderedtelos';
         //node.parentname = 'heztcmzsguge';
-        node.parentname = 'liohiv54fv1m';
+        node.parentname = 'qwertasdfg12';
 
         // Initialize eojs API
         const signatureProvider = new JsSignatureProvider([node.privkey]);
@@ -61,6 +61,8 @@ module.exports = function(RED) {
 
             // Check that account exists and fits private key
             try {
+                if (connect === false) {throw ""};
+
                 // Get account info
                 accountInfo = await rpc.get_account(node.parentname);
 
@@ -88,6 +90,8 @@ module.exports = function(RED) {
             // Compare account's ABI to the one found in the repo
             //   Deploy nodered contract if necessary
             try {
+                if (connect === false) {throw ""};
+
                 accountAbi = await rpc.get_abi(node.parentname);
 
                 if ("abi" in accountAbi) { // Contract exists
@@ -116,6 +120,8 @@ module.exports = function(RED) {
                         } else { /* RAM purchase successful */ }
                     } else { /* Have enough RAM to deploy the contract */ }
 
+                    if (connect === false) {throw ""};
+
                     // Convert ABI and WASM into hex strings
                     const wasmFilePath = 'telos-push/contract_code/wxlaunches.wasm';
                     const wasmHexString = fs.readFileSync(wasmFilePath).toString('hex');
@@ -124,6 +130,7 @@ module.exports = function(RED) {
                         textEncoder: api.textEncoder,
                         textDecoder: api.textDecoder,
                     });
+
                     let abiJSON = JSON.parse(fs.readFileSync(abiFilePath, 'utf8'));
                     const abiDefinitions = api.abiTypes.get('abi_def');
                     abiJSON = abiDefinitions.fields.reduce(
@@ -134,7 +141,6 @@ module.exports = function(RED) {
                     abiDefinitions.serialize(buffer, abiJSON);
                     const serializedAbiHexString = Buffer.from(buffer.asUint8Array()).toString('hex');
 
-                    // Check
                     trans.deploy_contract(node.parentname, wasmHexString, serializedAbiHexString, api);
 
                 }
@@ -150,7 +156,42 @@ module.exports = function(RED) {
                 console.log("Node looks good. Connecting node to injection.");
                 // Function that runs every time data is injected
                 node.on('input', function(msg){
-                    trans.payload_to_blockchain(node.parentname, node.id, msg.payload, api);
+
+                    let actionName;
+                    let actionArgs = [];
+
+
+                    // Check if msg.action was passed
+                    if (msg.hasOwnProperty('action')) {
+                        actionName = msg.action;
+                    } else {
+                        actionName = "updatedata"
+                    }
+
+                    // Get a list of all the action's arguments
+                    for (var i=0; i < repoAbi.structs.length; i++) {
+                        if (repoAbi.structs[i].name === actionName) {
+                            for (var j=0; j < repoAbi.structs[i].fields.length; j++) {
+                                actionArgs.push(repoAbi.structs[i].fields[j].name);
+                            }
+                            break; // Break out of loop for speed
+                        }
+                    }
+
+                    // Check the action's arguments for matching items in msg.payload
+                    if (actionArgs.length > 0) {
+                        // Check that each payload key corresponds to an action argument
+                        for (var arg of actionArgs) {
+                            if (!msg.payload.hasOwnProperty(arg)) {
+                                console.log("Action argument "+arg+" is not fulfilled by payload.");
+                            }
+                        }
+                    } else {
+                        console.log("The action name doesn't exist or have any parameters.");
+                        return;
+                    }
+
+                    //trans.payload_to_blockchain(node.parentname, actionName, msg.payload, api);
                     node.send(msg); // continue sending message through to outputs if necessary
                 });
             }

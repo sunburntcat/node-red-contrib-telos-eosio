@@ -36,27 +36,27 @@
                     "type": "uint32"
                 },
                 {
-                    "name": "pressure",
+                    "name": "pressure_hpa",
                     "type": "float32"
                 },
                 {
-                    "name": "temperature",
+                    "name": "temperature_c",
                     "type": "float32"
                 },
                 {
-                    "name": "humidity",
+                    "name": "relHumidity",
                     "type": "float32"
                 },
                 {
-                    "name": "dewpoint",
+                    "name": "dewPoint_c",
                     "type": "float32"
                 },
                 {
-                    "name": "wind",
+                    "name": "wind_mph",
                     "type": "float32"
                 },
                 {
-                    "name": "wind_dir",
+                    "name": "wind_degrees",
                     "type": "float32"
                 }
             ]
