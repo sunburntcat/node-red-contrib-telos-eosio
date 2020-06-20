@@ -14,6 +14,8 @@ async function push_trx(trx, tapos, api) {
     } catch (e) {
         console.log("API Error while trying to send transaction.");
         console.log(e); // Print any errors
+        console.log("Additional details shown below:");
+        console.log(e.json.error.details);
         return 1;
     }
 
@@ -46,7 +48,9 @@ async function push_presigned_trx(trx, signature) {
         }
     } catch (e) {
         console.log("API Error while trying to send transaction.");
-        console.log(e); // Print any errors
+        console.log(e);
+        console.log("Additional details shown below:");
+        console.log(e.json.error.details);
         return 1;
     }
 
@@ -231,8 +235,12 @@ module.exports = {
         }];
 
         const missing = "-9999";
-        var jsonString1 = '{"nodeid": "'+tableIndex+'"';
-        var jsonString2 = '{"nodeid": "'+tableIndex+'"';
+        //var jsonString1 = '{"nodeid": "'+tableIndex+'"';
+        //var jsonString2 = '{"nodeid": "'+tableIndex+'"';
+        //var jsonString1 = '{"nodeid": "'+account+'"';
+        //var jsonString2 = '{"nodeid": "'+account+'"';
+        var jsonString1 = '{"nodeid": "liohiv54fv1m"';
+        var jsonString2 = '{"nodeid": "liohiv54fv1m"';
         var counter = 1;
         //for (var key in payload) {
         for (let [key, value] of Object.entries(payload)) {

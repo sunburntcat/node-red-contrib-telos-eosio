@@ -1,0 +1,127 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [],
+    "structs": [
+        {
+            "name": "addlatlon",
+            "base": "",
+            "fields": [
+                {
+                    "name": "latitude",
+                    "type": "float32"
+                },
+                {
+                    "name": "longitude",
+                    "type": "float32"
+                }
+            ]
+        },
+        {
+            "name": "addminer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "miner",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "addobs",
+            "base": "",
+            "fields": [
+                {
+                    "name": "unix_time",
+                    "type": "uint32"
+                },
+                {
+                    "name": "pressure",
+                    "type": "float32"
+                },
+                {
+                    "name": "temperature",
+                    "type": "float32"
+                },
+                {
+                    "name": "humidity",
+                    "type": "float32"
+                },
+                {
+                    "name": "dewpoint",
+                    "type": "float32"
+                },
+                {
+                    "name": "wind",
+                    "type": "float32"
+                },
+                {
+                    "name": "wind_dir",
+                    "type": "float32"
+                }
+            ]
+        },
+        {
+            "name": "observations",
+            "base": "",
+            "fields": [
+                {
+                    "name": "unix_time",
+                    "type": "uint32"
+                },
+                {
+                    "name": "pressure_hpa",
+                    "type": "float32"
+                },
+                {
+                    "name": "temperature_c",
+                    "type": "float32"
+                },
+                {
+                    "name": "relHumidity",
+                    "type": "float32"
+                },
+                {
+                    "name": "dewPoint_c",
+                    "type": "float32"
+                },
+                {
+                    "name": "wind_mph",
+                    "type": "float32"
+                },
+                {
+                    "name": "wind_degrees",
+                    "type": "float32"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "addlatlon",
+            "type": "addlatlon",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "addminer",
+            "type": "addminer",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "addobs",
+            "type": "addobs",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "observations",
+            "type": "observations",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "variants": []
+}

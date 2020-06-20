@@ -27,14 +27,16 @@ module.exports = function(RED) {
         node.pubkey = ecc.privateToPublic(node.privkey);
 
         node.inputtype = config.inputtype;
-        node.parentname = 'noderedtelos';
+        //node.parentname = 'noderedtelos';
         //node.parentname = 'heztcmzsguge';
-        //node.parentname = 'heztcmzsgugf';
+        node.parentname = 'liohiv54fv1m';
 
         // Initialize eojs API
         const signatureProvider = new JsSignatureProvider([node.privkey]);
         const rpc = new JsonRpc(node.endpoint, { fetch });
         const api = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
+
+        let connect = true;
 
         (async () => {
 
@@ -49,16 +51,18 @@ module.exports = function(RED) {
                     console.log("The http endpoint you provided doesn't match the chain ID");
                     console.log("Your provided chain ID: " + node.chainid);
                     console.log("RPC response: " + info.chain_id);
-                    return;
+                    connect = false;
                 }
             } catch (e) {
                 console.log(e); // Print any timeout errors
             }
 
+            let accountInfo, accountAbi, repoAbi;
+
             // Check that account exists and fits private key
             try {
                 // Get account info
-                const accountInfo = await rpc.get_account(node.parentname);
+                accountInfo = await rpc.get_account(node.parentname);
 
                 // Loop through the various permissions
                 for (var i=0; i < accountInfo.permissions.length; i++){
@@ -72,10 +76,11 @@ module.exports = function(RED) {
                     }
                 }
             } catch (e) {
-                if (e.json.error.details[0].message.includes("unknown key"))
+                //if (e.json.error.details[0].message.includes("unknown key"))
+                if (e instanceof RpcError)
                 {
                     console.log("The provided account name "+node.parentname+" doesn't seem to exist.");
-                    return;
+                    connect = false;
                 }
 
             }
@@ -83,12 +88,12 @@ module.exports = function(RED) {
             // Compare account's ABI to the one found in the repo
             //   Deploy nodered contract if necessary
             try {
-                const accountAbi = await rpc.get_abi(node.parentname);
+                accountAbi = await rpc.get_abi(node.parentname);
 
                 if ("abi" in accountAbi) { // Contract exists
 
                     // Read the ABI file found inside the repository
-                    const repoAbi = JSON.parse(fs.readFileSync('telos-push/contract_code/noderedtelos.abi', 'utf8'));
+                    repoAbi = JSON.parse(fs.readFileSync('telos-push/contract_code/wxlaunches.abi', 'utf8'));
 
                     // Check if ABI's properties are different from the repository's ABI
                     if (!_.isEqual(accountAbi.abi.actions, repoAbi.actions) ||
@@ -98,23 +103,23 @@ module.exports = function(RED) {
                         // Contract is not one we recognize.
                         console.log("A contract with a different ABI already exists on the account.");
                         console.log("Please input a different account name.");
-                        return;
+                        connect = false;
                     } else { /* The contract has the right ABI */}
 
                 } else { // There is no contract applied yet
 
                     // Check if we have enough RAM to apply a contract on the account
-                    if (accountInfo.ram_quota - accountInfo.ram_usage < 200000) {
-                        if (trans.buy_ram(account, account, 220000, api) !== 0) { // Contract deployment requires about 195KB RAM
+                    if (accountInfo.ram_quota - accountInfo.ram_usage < 150000) {
+                        if (await trans.buy_ram(node.parentname, node.parentname, 150000, api) !== 0) {
                             console.log("TLOS balance too low for contract deployment");
-                            return;
+                            connect = false;
                         } else { /* RAM purchase successful */ }
                     } else { /* Have enough RAM to deploy the contract */ }
 
                     // Convert ABI and WASM into hex strings
-                    const wasmFilePath = 'telos-push/contract_code/noderedtelos.wasm';
+                    const wasmFilePath = 'telos-push/contract_code/wxlaunches.wasm';
                     const wasmHexString = fs.readFileSync(wasmFilePath).toString('hex');
-                    const abiFilePath = 'telos-push/contract_code/noderedtelos.abi';
+                    const abiFilePath = 'telos-push/contract_code/wxlaunches.abi';
                     const buffer = new Serialize.SerialBuffer({
                         textEncoder: api.textEncoder,
                         textDecoder: api.textDecoder,
@@ -130,27 +135,27 @@ module.exports = function(RED) {
                     const serializedAbiHexString = Buffer.from(buffer.asUint8Array()).toString('hex');
 
                     // Check
-                    trans.deploy_contract(account, wasmHexString, serializedAbiHexString, api);
+                    trans.deploy_contract(node.parentname, wasmHexString, serializedAbiHexString, api);
 
                 }
             } catch (e) {
                 if (e instanceof RpcError) // Should specify error due to 'unknown key'
                 {
                     console.log("Unexpected RPC error when checking account's contract.");
-                    return;
+                    connect = false;
                 }
             }
 
+            if (connect){
+                console.log("Node looks good. Connecting node to injection.");
+                // Function that runs every time data is injected
+                node.on('input', function(msg){
+                    trans.payload_to_blockchain(node.parentname, node.id, msg.payload, api);
+                    node.send(msg); // continue sending message through to outputs if necessary
+                });
+            }
+
         })(); // End of async
-
-        console.log("Node looks good.");
-
-        // Function that runs every time data is injected
-        node.on('input', function(msg){
-            trans.payload_to_blockchain(node.parentname, node.id, msg.payload, api);
-            node.send(msg); // continue sending message through to outputs if necessary
-        });
-
     }                       // end TelosTransactNode definition
     RED.nodes.registerType("telos-push",TelosPushNode);
 };
