@@ -251,6 +251,11 @@ module.exports = {
         console.log("Writing data...");
         return push_trx(trx, tapos, api);
 
+    },
+
+    approve_msig: async function(proposer_name, proposal_name) {
+
+
     }
 
 };

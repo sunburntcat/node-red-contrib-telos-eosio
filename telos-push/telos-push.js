@@ -29,7 +29,8 @@ module.exports = function(RED) {
         node.inputtype = config.inputtype;
         //node.parentname = 'noderedtelos';
         //node.parentname = 'heztcmzsguge';
-        node.parentname = 'qwertasdfg12';
+        //node.parentname = 'qwertasdfg12';
+        node.parentname = 'srqponm245ab';
 
         // Initialize eojs API
         const signatureProvider = new JsSignatureProvider([node.privkey]);
@@ -191,6 +192,7 @@ module.exports = function(RED) {
                         return;
                     }
 
+                    // UNCOMMENT when ready to add iot data to eosio table
                     //trans.payload_to_blockchain(node.parentname, actionName, msg.payload, api);
                     node.send(msg); // continue sending message through to outputs if necessary
                 });
