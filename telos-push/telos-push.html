@@ -1,33 +1,24 @@
 
 <script type="text/javascript">
 
-    // Set nodeid which will also be our eosio primary index (name converts to uint64_t)
-    var nodeid = '';
-    // subset of characters allowed in eosio names
-    const characters = 'abcdefghijklmnopqrstuvwxyz.12345';
-    // Twelve characters per account name
-    for (var i = 0; i < 12; i++) {
-        nodeid += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-
     RED.nodes.registerType('telos-push',{
         category: 'blockchain',
         color: '#a6bbcf',
         defaults: {
-            id: {value:nodeid, required: true},
+            name: {value:"", required: true},
             blockchain: {value:"testnet", required: true},
             chainid: {value:"1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f", required: true},
             endpoint: {value:"https://basho-api.telosuk.io", required: true},
             customendpoint: {value:"", required: false},
-            privkey: {value:"", required: true},
-            name: {value:"", required: false},
+            privkey: {value:"/Users/nlopez/Google Drive/nodered_ttn_eosio/telos_keystore.txt", required: true},
             inputtype: {value:"action", required: true}
         },
         inputs:1,
         outputs:0,
         icon: "icons/blocks.png",
         label: function() {
-            return this.name||"telos-push";
+            //return this.name||"telos-push";
+            return "telos-push";
         },
         oneditprepare: function(){
             $("#node-input-blockchain").change(function() {
@@ -66,6 +57,10 @@
 </script>
 
 <script type="text/html" data-template-name="telos-push">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
     <div class="form-row">
         <label for="node-input-blockchain"><i class="icon-tag"></i> Eosio Blockchain</label>
         <select type="text" id="node-input-blockchain" style="display: inline-block; vertical-align: middle; width:60%;">

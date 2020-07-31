@@ -1,6 +1,11 @@
 
 // Pushes transaction to the blockchain
-async function push_trx(trx, tapos, api) {
+async function push_trx(trx, api) {
+
+    const tapos = {};
+    tapos.blocksBehind = 3;
+    tapos.expireSeconds = 30;
+
     try {
         const result = await api.transact(trx, tapos);
         if (!result.processed.error_code) { // If endpoint didn't give error
@@ -61,20 +66,26 @@ module.exports = {
 
 
     create_new_account: async function (parent, name, api) {
+
+        let num_bytes = 300000;
+
         // New account data is complicated so we will build it first
         const newAcctData = {};
         newAcctData.creator = parent;
         newAcctData.name = name;
         newAcctData.owner = {};
         newAcctData.owner.threshold = 1;
-        newAcctData.owner.keys = [];
+        newAcctData.owner.keys = [{
+            'key':'EOS5a6L2rHrNoZUwfhvQvuUa6syAZqifcTcj8nG9cEhi6uqSRH31f',
+            'weight':1  }];
         newAcctData.owner.waits = [];
+        newAcctData.owner.accounts = [];
         newAcctData.owner.accounts = [{}];
         newAcctData.owner.accounts[0].weight = 1;
         newAcctData.owner.accounts[0].permission = {};
         newAcctData.owner.accounts[0].permission.actor = name;
-        newAcctData.owner.accounts[0].permission.permission = "active";
-        newAcctData.active = newAcctData.owner; // Active permission looks just like owner
+        newAcctData.owner.accounts[0].permission.permission = "eosio.code";
+        newAcctData.active= newAcctData.owner;
 
         //Build the new account action
         const newAcctAction = {};
@@ -95,7 +106,7 @@ module.exports = {
         buyRamAction.data = {};
         buyRamAction.data.payer = parent;
         buyRamAction.data.receiver = name;
-        buyRamAction.data.bytes = 8192;
+        buyRamAction.data.bytes = num_bytes;
 
         // Delegate CPU and NET to the account
         const delegateBwAction = {};
@@ -107,21 +118,17 @@ module.exports = {
         delegateBwAction.data = {};
         delegateBwAction.data.from = "noderedtelos";
         delegateBwAction.data.receiver = name;
-        delegateBwAction.data.stake_net_quantity = "1.0000 TLOS";
-        delegateBwAction.data.stake_cpu_quantity = "1.0000 TLOS";
+        delegateBwAction.data.stake_net_quantity = "5.0000 TLOS";
+        delegateBwAction.data.stake_cpu_quantity = "5.0000 TLOS";
         delegateBwAction.data.transfer = false;
 
         const trx = {};
         trx.actions = [newAcctAction, buyRamAction, delegateBwAction];
 
-        const tapos = {};
-        tapos.blocksBehind = 3;
-        tapos.expireSeconds = 30;
-
-        msg = "Creating new eosio account for " + name + " with 8192 bytes of RAM, " +
-            "1 TLOS for CPU, and 1 TLOS for NET...";
+        msg = "Creating new eosio account for " + name + " with "+ num_bytes + " bytes of RAM, " +
+            "5 TLOS for CPU, and 5 TLOS for NET...";
         console.log(msg);
-        return push_trx(trx, tapos, api);
+        return push_trx(trx, api);
 
     },
 
@@ -142,12 +149,8 @@ module.exports = {
         const trx = {};
         trx.actions = [buyRamAction];
 
-        const tapos = {};
-        tapos.blocksBehind = 3;
-        tapos.expireSeconds = 30;
-
         console.log("Buying "+amountBytes+" of RAM.");
-        return push_trx(trx, tapos, api);
+        return push_trx(trx, api);
 
     },
 
@@ -170,13 +173,8 @@ module.exports = {
         const trx = {};
         trx.actions = [delegateBwAction];
 
-        const tapos = {};
-        tapos.blocksBehind = 3;
-        tapos.expireSeconds = 30;
-
-
         console.log("Delegating 5 more TLOS to CPU and NET each.");
-        return push_trx(trx, tapos, api);
+        return push_trx(trx, api);
     },
 
     deploy_contract: async function(account, wasmHex, abiHex, api) {
@@ -207,12 +205,8 @@ module.exports = {
             "abi": abiHex
         };
 
-        const tapos = {};
-        tapos.blocksBehind = 3;
-        tapos.expireSeconds = 30;
-
         console.log("Deploying eosio contract tables to the account.");
-        return push_trx(trx, tapos, api);
+        return push_trx(trx, api);
 
     },
 
@@ -220,7 +214,7 @@ module.exports = {
 
         // Create actions payload
         var trx = {};
-        trx.actions = [{}];
+        trx.actions = [{},{}];
         trx.actions[0].account = account;
         trx.actions[0].name = actionName;
         trx.actions[0].authorization = [{
@@ -228,20 +222,45 @@ module.exports = {
             "permission": "active"
         }];
 
-        // Simply set the data to the incoming payload
+        // Simply set the
         trx.actions[0].data = payload;
 
-        const tapos = {};
-        tapos.blocksBehind = 3;
-        tapos.expireSeconds = 30;
+        /* For old noderedtelos contract
+        for (let [key, value] of Object.entries(payload)) {
+            jsonString += ', "field'+counter+'": "'+key+'"';
+            counter++;
+        }
+        for (counter; counter<11; counter++) {
+            jsonString += ', "field'+counter+'": "'+missing+'"';
+        }
+        jsonString += '}';
+        trx.actions[0].data = JSON.parse(jsonString);
+
+         */
+
+
 
         console.log("Writing data...");
-        return push_trx(trx, tapos, api);
+        return push_trx(trx, api);
 
     },
 
-    approve_msig: async function(proposer_name, proposal_name) {
+    exectute_msig: async function(account, proposer_name, proposal_name, api) {
 
+        var trx = {};
+
+        trx.actions = [{}]; // {msig approve}
+
+        // Approve own proposal
+        trx.actions[0].account = 'eosio.msig';
+        trx.actions[0].name = 'exec';
+        trx.actions[0].authorization = [{'actor': account, 'permission': 'active'}];
+        trx.actions[0].data = {'proposer':proposer_name,
+            'proposal_name': proposal_name,
+            'executer': account};
+
+        console.log("Executing msig...");
+        return push_trx(trx, api);
 
     }
 

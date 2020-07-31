@@ -1,0 +1,54 @@
+
+
+<script type="text/javascript">
+
+    /*  // For some reason this must be commented out to get telos-push
+    // Set nodeid which will also be our eosio primary index (name converts to uint64_t)
+    var nodeid = '';
+    // subset of characters allowed in eosio names
+    const characters = 'abcdefghijklmnopqrstuvwxyz.12345';
+    // Twelve characters per account name
+    for (var i = 0; i < 12; i++) {
+        nodeid += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+     */
+
+    RED.nodes.registerType('telos-msig',{
+        category: 'blockchain',
+        color: '#a6bbcf',
+        defaults: {
+            //name: {value: "", required: true},
+            //blockchain: {value:"testnet", required: true},
+            //chainid: {value:"1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f", required: true},
+            //endpoint: {value:"https://basho-api.telosuk.io", required: true},
+            //customendpoint: {value:"", required: false},
+            //privkey: {value:"/Users/nlopez/Google Drive/nodered_ttn_eosio/telos_keystore.txt", required: true},
+            //inputtype: {value:"action", required: false}
+            name: {value: '', required: true},
+            blockchain: {value:"mainnet", required: true},
+            chainid: {value:"4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11", required: true},
+            endpoint: {value:"https://telos.caleos.io", required: true},
+            customendpoint: {value:"", required: false},
+            privkey: {value:"/Users/nlopez/Google Drive/nodered_ttn_eosio/telos_keystore.txt", required: true},
+            inputtype: {value:"action", required: false}
+        },
+        inputs:1,
+        outputs:0,
+        icon: "icons/blocks.png",
+        label: function() {
+            //return this.name||"telos-msig";
+            return "telos-msig";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="telos-msig">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="telos-msig">
+    <p>A simple node that converts the message payloads into all lower-case characters</p>
+</script>

@@ -4,16 +4,6 @@
     "types": [],
     "structs": [
         {
-            "name": "addminer",
-            "base": "",
-            "fields": [
-                {
-                    "name": "miner",
-                    "type": "name"
-                }
-            ]
-        },
-        {
             "name": "addobs",
             "base": "",
             "fields": [
@@ -48,19 +38,31 @@
             ]
         },
         {
-            "name": "addsky",
+            "name": "initlaunch",
             "base": "",
             "fields": [
                 {
-                    "name": "wxcondition",
-                    "type": "string"
+                    "name": "unix_time",
+                    "type": "uint64"
                 }
             ]
         },
         {
-            "name": "newlaunch",
+            "name": "launches",
             "base": "",
             "fields": [
+                {
+                    "name": "launch_number",
+                    "type": "uint8"
+                },
+                {
+                    "name": "unix_time",
+                    "type": "uint64"
+                },
+                {
+                    "name": "miner",
+                    "type": "name"
+                },
                 {
                     "name": "latitude",
                     "type": "float32"
@@ -70,8 +72,16 @@
                     "type": "float32"
                 },
                 {
-                    "name": "elevation",
+                    "name": "pressure_hpa",
                     "type": "float32"
+                },
+                {
+                    "name": "wxcondition",
+                    "type": "string"
+                },
+                {
+                    "name": "reward",
+                    "type": "uint32"
                 }
             ]
         },
@@ -79,6 +89,10 @@
             "name": "observations",
             "base": "",
             "fields": [
+                {
+                    "name": "launch_number",
+                    "type": "uint8"
+                },
                 {
                     "name": "unix_time",
                     "type": "uint64"
@@ -108,31 +122,81 @@
                     "type": "float32"
                 }
             ]
+        },
+        {
+            "name": "setlocation",
+            "base": "",
+            "fields": [
+                {
+                    "name": "lat",
+                    "type": "float32"
+                },
+                {
+                    "name": "lon",
+                    "type": "float32"
+                },
+                {
+                    "name": "pressure",
+                    "type": "float32"
+                }
+            ]
+        },
+        {
+            "name": "setminer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "miner",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "setsky",
+            "base": "",
+            "fields": [
+                {
+                    "name": "wxcondition",
+                    "type": "string"
+                }
+            ]
         }
     ],
     "actions": [
-        {
-            "name": "addminer",
-            "type": "addminer",
-            "ricardian_contract": ""
-        },
         {
             "name": "addobs",
             "type": "addobs",
             "ricardian_contract": ""
         },
         {
-            "name": "addsky",
-            "type": "addsky",
+            "name": "initlaunch",
+            "type": "initlaunch",
             "ricardian_contract": ""
         },
         {
-            "name": "newlaunch",
-            "type": "newlaunch",
+            "name": "setlocation",
+            "type": "setlocation",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setminer",
+            "type": "setminer",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setsky",
+            "type": "setsky",
             "ricardian_contract": ""
         }
     ],
     "tables": [
+        {
+            "name": "launches",
+            "type": "launches",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
         {
             "name": "observations",
             "type": "observations",

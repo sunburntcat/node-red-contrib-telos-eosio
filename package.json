@@ -34,10 +34,10 @@
   "homepage": "https://github.com/sunburntcat/node-red-contrib-telos-eosio#readme",
   "node-red": {
     "nodes": {
-      "lower-case": "lower-case/lower-case.js",
-      "telos-transfer": "telos-transfer/telos-transfer.js",
+      "telos-msig": "telos-msig/telos-msig.js",
+      "telos-create": "telos-create/telos-create.js",
       "telos-push": "telos-push/telos-push.js",
-      "msig-push": "msig-push/msig-push.js"
+      "telos-transfer": "telos-transfer/telos-transfer.js"
     }
   }
 }

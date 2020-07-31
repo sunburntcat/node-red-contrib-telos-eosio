@@ -1,6 +1,11 @@
 
 // Pushes transaction to the blockchain
-async function push_trx(trx, tapos, api) {
+async function push_trx(trx, api) {
+
+    const tapos = {};
+    tapos.blocksBehind = 3;
+    tapos.expireSeconds = 30;
+
     try {
         const result = await api.transact(trx, tapos);
         if (!result.processed.error_code) { // If endpoint didn't give error
@@ -114,14 +119,10 @@ module.exports = {
         const trx = {};
         trx.actions = [newAcctAction, buyRamAction, delegateBwAction];
 
-        const tapos = {};
-        tapos.blocksBehind = 3;
-        tapos.expireSeconds = 30;
-
         msg = "Creating new eosio account for " + name + " with 8192 bytes of RAM, " +
             "1 TLOS for CPU, and 1 TLOS for NET...";
         console.log(msg);
-        return push_trx(trx, tapos, api);
+        return push_trx(trx, api);
 
     },
 
@@ -142,12 +143,8 @@ module.exports = {
         const trx = {};
         trx.actions = [buyRamAction];
 
-        const tapos = {};
-        tapos.blocksBehind = 3;
-        tapos.expireSeconds = 30;
-
         console.log("Buying "+amountBytes+" of RAM.");
-        return push_trx(trx, tapos, api);
+        return push_trx(trx, api);
 
     },
 
@@ -170,13 +167,8 @@ module.exports = {
         const trx = {};
         trx.actions = [delegateBwAction];
 
-        const tapos = {};
-        tapos.blocksBehind = 3;
-        tapos.expireSeconds = 30;
-
-
         console.log("Delegating 5 more TLOS to CPU and NET each.");
-        return push_trx(trx, tapos, api);
+        return push_trx(trx, api);
     },
 
     deploy_contract: async function(account, wasmHex, abiHex, api) {
@@ -207,12 +199,8 @@ module.exports = {
             "abi": abiHex
         };
 
-        const tapos = {};
-        tapos.blocksBehind = 3;
-        tapos.expireSeconds = 30;
-
         console.log("Deploying eosio contract tables to the account.");
-        return push_trx(trx, tapos, api);
+        return push_trx(trx, api);
 
     },
 
@@ -244,17 +232,29 @@ module.exports = {
 
          */
 
-        const tapos = {};
-        tapos.blocksBehind = 3;
-        tapos.expireSeconds = 30;
+
 
         console.log("Writing data...");
-        return push_trx(trx, tapos, api);
+        return push_trx(trx, api);
 
     },
 
-    approve_msig: async function(proposer_name, proposal_name) {
+    exectute_msig: async function(account, proposer_name, proposal_name, api) {
 
+        var trx = {};
+
+        trx.actions = [{}]; // {msig approve}
+
+        // Approve own proposal
+        trx.actions[0].account = 'eosio.msig';
+        trx.actions[0].name = 'exec';
+        trx.actions[0].authorization = [{'actor': account, 'permission': 'active'}];
+        trx.actions[0].data = {'proposer':proposer_name,
+            'proposal_name': proposal_name,
+            'executer': account};
+
+        console.log("Executing msig...");
+        return push_trx(trx, api);
 
     }
 

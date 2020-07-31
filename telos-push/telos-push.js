@@ -13,6 +13,7 @@ const trans = require('./lib/transaction_modules.js');
 
 module.exports = function(RED) {
     function TelosPushNode(config) {
+
         RED.nodes.createNode(this,config);
         var node = this;
 
@@ -27,10 +28,7 @@ module.exports = function(RED) {
         node.pubkey = ecc.privateToPublic(node.privkey);
 
         node.inputtype = config.inputtype;
-        //node.parentname = 'noderedtelos';
-        //node.parentname = 'heztcmzsguge';
-        //node.parentname = 'qwertasdfg12';
-        node.parentname = 'srqponm245ab';
+        node.subaccount = config.name;
 
         // Initialize eojs API
         const signatureProvider = new JsSignatureProvider([node.privkey]);
@@ -42,6 +40,7 @@ module.exports = function(RED) {
         (async () => {
 
             // Test that chain ID is correct
+            /*
             try {
                 // UNCOMMENT FOLLOWING 2 LINES
                 const info = await rpc.get_info(); //get information from http endpoint
@@ -57,6 +56,7 @@ module.exports = function(RED) {
             } catch (e) {
                 console.log(e); // Print any timeout errors
             }
+             */
 
             let accountInfo, accountAbi, repoAbi;
 
@@ -65,7 +65,7 @@ module.exports = function(RED) {
                 if (connect === false) {throw ""};
 
                 // Get account info
-                accountInfo = await rpc.get_account(node.parentname);
+                accountInfo = await rpc.get_account(node.subaccount);
 
                 // Loop through the various permissions
                 for (var i=0; i < accountInfo.permissions.length; i++){
@@ -82,7 +82,7 @@ module.exports = function(RED) {
                 //if (e.json.error.details[0].message.includes("unknown key"))
                 if (e instanceof RpcError)
                 {
-                    console.log("The provided account name "+node.parentname+" doesn't seem to exist.");
+                    console.log("The provided account name "+node.subaccount+" doesn't seem to exist.");
                     connect = false;
                 }
 
@@ -93,7 +93,7 @@ module.exports = function(RED) {
             try {
                 if (connect === false) {throw ""};
 
-                accountAbi = await rpc.get_abi(node.parentname);
+                accountAbi = await rpc.get_abi(node.subaccount);
 
                 if ("abi" in accountAbi) { // Contract exists
 
@@ -113,13 +113,18 @@ module.exports = function(RED) {
 
                 } else { // There is no contract applied yet
 
+                    let failRamBuy;
+
                     // Check if we have enough RAM to apply a contract on the account
-                    if (accountInfo.ram_quota - accountInfo.ram_usage < 150000) {
-                        if (await trans.buy_ram(node.parentname, node.parentname, 150000, api) !== 0) {
-                            console.log("TLOS balance too low for contract deployment");
+                    while (accountInfo.ram_quota - accountInfo.ram_usage < 100000) {
+                        failRamBuy = await trans.buy_ram("noderedtelos", node.subaccount, 100000, api)
+                        if ( failRamBuy !== 0) {
+                            console.log("Parent TLOS balance too low for contract deployment");
                             connect = false;
-                        } else { /* RAM purchase successful */ }
-                    } else { /* Have enough RAM to deploy the contract */ }
+                        } else {
+                            accountInfo = await rpc.get_account(node.subaccount);
+                        }
+                    }
 
                     if (connect === false) {throw ""};
 
@@ -142,7 +147,7 @@ module.exports = function(RED) {
                     abiDefinitions.serialize(buffer, abiJSON);
                     const serializedAbiHexString = Buffer.from(buffer.asUint8Array()).toString('hex');
 
-                    trans.deploy_contract(node.parentname, wasmHexString, serializedAbiHexString, api);
+                    trans.deploy_contract(node.subaccount, wasmHexString, serializedAbiHexString, api);
 
                 }
             } catch (e) {
@@ -158,16 +163,17 @@ module.exports = function(RED) {
                 // Function that runs every time data is injected
                 node.on('input', function(msg){
 
-                    let actionName;
                     let actionArgs = [];
+                    let actionName = "addobs";
 
-
+                    /*
                     // Check if msg.action was passed
                     if (msg.hasOwnProperty('action')) {
                         actionName = msg.action;
                     } else {
-                        actionName = "updatedata"
+                        actionName = "addobs"
                     }
+                    */
 
                     // Get a list of all the action's arguments
                     for (var i=0; i < repoAbi.structs.length; i++) {
@@ -193,12 +199,13 @@ module.exports = function(RED) {
                     }
 
                     // UNCOMMENT when ready to add iot data to eosio table
-                    //trans.payload_to_blockchain(node.parentname, actionName, msg.payload, api);
+                    trans.payload_to_blockchain(node.subaccount, actionName, msg.payload, api);
                     node.send(msg); // continue sending message through to outputs if necessary
                 });
             }
 
         })(); // End of async
     }                       // end TelosTransactNode definition
+
     RED.nodes.registerType("telos-push",TelosPushNode);
 };
