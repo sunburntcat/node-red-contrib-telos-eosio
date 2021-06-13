@@ -15,11 +15,3 @@ npm install
 ```
 
 You should see a package-lock.json file and a folder called node_modules that includes eosjs libraries for interacting with the blockchain.
-
-## Example flow usage
-
-The example flow files require other NPM node-red packages to work properly. Install the twitter API node by doing the following:
-
-```
-npm install node-red-node-twitter
-```
