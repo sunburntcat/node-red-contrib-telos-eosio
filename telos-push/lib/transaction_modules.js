@@ -1,22 +1,20 @@
 
 // Pushes transaction to the blockchain
 async function push_trx(trx, tapos, api) {
+
     try {
+
         const result = await api.transact(trx, tapos);
+
         if (!result.processed.error_code) { // If endpoint didn't give error
             console.log("Trx: " + result.transaction_id);
             return 0;
         } else {
             console.log("API Endpoint gave the following eosio-based error:");
             console.log(result);
-            return 1;
         }
-    } catch (e) {
-        console.log("API Error while trying to send transaction.");
-        console.log(e); // Print any errors
-        console.log("Additional details shown below:");
-        console.log(e.json.error.details);
-        return 1;
+    } catch(e) {
+        throw(e);
     }
 
 }
@@ -216,7 +214,40 @@ module.exports = {
 
     },
 
-    payload_to_blockchain: async function(account, actionName, payload, api) {
+    payload_to_blockchain: async function(account, actionName, payload, rpc, api) {
+
+
+        /* NOTE THE FOLLOWING CODE IS TEMPORARY FOR
+              GETTING THE NECESSARY LAUNCH ID
+         */
+        /*
+        let json = await rpc.get_table_rows({
+            json: true,                 // Get the response as json
+            code: account,           // Contract that we target
+            scope: account,          // Account that owns the data
+            table: 'launches',          // Table name
+            reverse: true,
+            limit: 100,                   // Here we limit to 1 to get only the single row with primary key equal to 'testacc'
+        });
+
+        if (json.rows.length>0) {
+            let maximum = 0;
+            let i;
+            for (i = 0; i < json.rows.length ; i++) {
+                let time = json.rows[i].unix_time;
+                if (time > maximum) {
+                    payload.launch_id = json.rows[i].launch_id;
+                    maximum = time;
+                }
+            }
+            //return json.rows[0].launch_number;
+        } else {
+            payload.launch_id = "";
+        }
+        */
+
+
+        ///////////////////////////////////////////////
 
         // Create actions payload
         var trx = {};
@@ -235,13 +266,16 @@ module.exports = {
         tapos.blocksBehind = 3;
         tapos.expireSeconds = 30;
 
-        console.log("Writing data...");
-        return push_trx(trx, tapos, api);
+        try {
+            console.log("Attempting to write data...");
+            await push_trx(trx, tapos, api);
+        } catch(e) {
+            throw(e);
+        }
 
     },
 
     approve_msig: async function(proposer_name, proposal_name) {
-
 
     }
 
