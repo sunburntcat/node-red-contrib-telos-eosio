@@ -1,6 +1,5 @@
 const { Api, JsonRpc, RpcError } = require('eosjs');
 const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig');      // development only
-const ecc = require('eosjs-ecc');
 
 const fetch = require('node-fetch');                                    // node only; not needed in browsers
 const { TextEncoder, TextDecoder } = require('util');                   // node only; native TextEncoder/Decoder
@@ -16,7 +15,6 @@ module.exports = function(RED) {
         var node = this;
 
         //node.blockchain = config.blockchain; // Don't need. Chain ID should be enough
-        node.name = config.name;
         node.chainid = config.chainid;
         if (config.endpoint === "other") {
             node.endpoint = config.customendpoint;
@@ -40,8 +38,12 @@ module.exports = function(RED) {
         node.contract = config.contract;
         node.actionname = config.actionname;
 
+        if (config.permission === "") {
+            node.permission = "active";
+        } else
+            node.permission = config.permission;
+
         // Initialize eojs API
-        //const signatureProvider = new JsSignatureProvider([node.privkey]);
         const signatureProvider = new JsSignatureProvider(privkeys);
         const rpc = new JsonRpc(node.endpoint, {fetch});
         const api = new Api({
@@ -52,47 +54,44 @@ module.exports = function(RED) {
         });
 
         (async () => {
-            // Check that account exists
+            // First check that endpoint is working
+            try {
+                await rpc.get_info();
+                console.log("Blockchain RPC connection successful.")
+            } catch (e) {
+                if (e instanceof RpcError)
+                {
+                    console.log("Blockchain endpoint not available.");
+                    return;
+                }
+            }
 
+            // Next check that account exists
             if (node.contract !== "") {  // If contract is given in config
 
+                let accountAbi;
                 try {
-                    // Get account info
-                    await rpc.get_account(node.contract);
+                    //accountAbi = await rpc.get_abi(node.contract);
                 } catch (e) {
-                    //if (e.json.error.details[0].message.includes("unknown key"))
-                    if (e instanceof RpcError) {
-                        console.log("Node-RED error. Contract " +
-                            node.contract + " doesn't exist on " + config.blockchain + ".");
-                        return; // Exit without sending message
-                    }
+                    console.log("Contract not found on current blockchain.");
+                    console.log(e);
+                    return;
                 }
 
-                if (node.actionname !== "") { // If action is given in the config
-                    let contractName = node.contract;
-                    let actionName = node.actionname;
-
-                    let actionArgs = [];
-
-                    let accountAbi = await rpc.get_abi(contractName);
-
-                    // Get a list of all the action's arguments
-                    for (var i = 0; i < accountAbi.abi.structs.length; i++) {
-                        if (accountAbi.abi.structs[i].name === actionName) {
-                            for (var j = 0; j < accountAbi.abi.structs[i].fields.length; j++) {
-                                actionArgs.push(accountAbi.abi.structs[i].fields[j].name);
-                            }
-                            break; // Break out of loop for speed
-                        }
-                    }
-
-                } // end check for action in config
             } // end check for contract in config
-
-            //checkPermission(rpc, node,"active").then();
 
             console.log("Node looks good. Connecting node to injection.");
             node.on('input', async function (msg) {
+
+                // Handle pre-signed transaction
+                if (node.inputtype === 'trx') {
+
+                    let trx = msg.payload.packed_trx;
+                    let sig = msg.payload.signatures[0];
+
+                    await trans.push_presigned_trx(trx, sig, api);
+                }
+
                 let contractName, actionName;
 
                 if (node.actionname === "") {  // If left blank in the settings
@@ -108,7 +107,12 @@ module.exports = function(RED) {
                 }
 
                 try {
-                    await trans.payload_to_blockchain(contractName, actionName, msg.payload, rpc, api);
+                    await trans.payload_to_blockchain(contractName,
+                                                    actionName,
+                                                    node.permission,
+                                                    msg.payload,
+                                                    rpc,
+                                                    api);
                     node.send(msg); // continue sending message through to outputs
                 } catch (e) {
                     console.log("API Error while trying to send transaction.");
@@ -123,27 +127,7 @@ module.exports = function(RED) {
         })(); // End of async
 
 
-    }   // end TelosPushNode definition
-
-    // NOT Tested. Function will need a lot of work
-    async function checkPermission( rpc, contractName, pubkey, permName )
-    {
-        let accountInfo;
-
-        accountInfo = await rpc.get_account(contractName);
-
-        // Loop through the various permissions
-        for (var i=0; i < accountInfo.permissions.length; i++){
-            if (accountInfo.permissions[i].perm_name === permName)
-            {
-                const authKeys = accountInfo.permissions[i].required_auth.keys;
-                if (authKeys.length > 1 || authKeys[0].key !== pubkey) {
-                    throw "The account key you provided doesn't match the " + permName + " permission";
-                }
-            }
-        }
-
-    }
+    }   // end EosioPushNode definition
 
     RED.nodes.registerType("eosio-push",EosioPushNode);
 
