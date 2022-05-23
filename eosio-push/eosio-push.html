@@ -5,14 +5,15 @@
         category: 'blockchain',
         color: '#a6bbcf',
         defaults: {
-            name: {value:"eosio-push", required: false},
+            //name: {value:"eosio-push", required: false},
             blockchain: {value:"testnet", required: true},
             endpoint: {value:"https://basho-api.telosuk.io", required: true},
             customendpoint: {value:"", required: false},
             privkeyfile: {value:"telos_keystore.txt", required: true},
             inputtype: {value:"action", required: true},
             contract: {value:"", required: false},
-            actionname: {value:"", required: false}
+            actionname: {value:"", required: false},
+            permission: {value:"active", required: false}
         },
         inputs:1,
         outputs:1,
@@ -22,6 +23,7 @@
             return "eosio-push";
         },
         oneditprepare: function(){
+
             $("#node-input-blockchain").change(function() {
                 $("#node-input-endpoint").find('option').remove().end();  // Remove all API endpoint options
                 var select = $("#node-input-blockchain option:selected").val();
@@ -43,6 +45,18 @@
                     $("#node-input-customendpoint-row").show();
                 } else {
                     $("#node-input-customendpoint-row").hide();
+                }
+            });
+            $("#node-input-inputtype").change(function() {
+                var select = $("#node-input-inputtype option:selected").val();
+                if (select === "trx"){
+                    $("#node-input-contract-row").hide();
+                    $("#node-input-actionname-row").hide();
+                    $("#node-input-permission-row").hide();
+                } else {
+                    $("#node-input-contract-row").show();
+                    $("#node-input-action-row").show();
+                    $("#node-input-permission-row").show();
                 }
             });
         }
@@ -84,14 +98,19 @@
             <option value="trx"> Pre-Signed Transaction</option>
         </select>
     </div>
-    <div class="form-row">
+    <div class="form-row" id="node-input-contract-row">
         <label for="node-input-contract"><i class="icon-tag"></i>Contract Name (Optional)</label>
         <input type="text" id="node-input-contract" placeholder="Currently set by msg.contract">
     </div>
-    <div class="form-row">
-        <label for="node-input-actionname"><i class="icon-tag"></i> Action Name (Optional)</label>
+    <div class="form-row" id="node-input-actionname-row">
+        <label for="node-input-actionname"><i class="icon-tag"></i>Action Name (Optional)</label>
         <input type="text" id="node-input-actionname" placeholder="Currently set by msg.action">
-    </div></script>
+    </div>
+    <div class="form-row" id="node-input-permission-row">
+        <label for="node-input-permission"><i class="icon-tag"></i>Permission</label>
+        <input type="text" id="node-input-permission" placeholder="active">
+    </div>
+</script>
 
 <script type="text/html" data-help-name="eosio-push">
     <p>A node that sends eosio actions to a requested account</p>
@@ -125,6 +144,12 @@
         input values found in the the smart contract's ABI.
 
         All other fields included in the <code>msg.payload</code> will be ignored.
+    </p>
+
+    <p>
+        The private key file should be the name of a file on the local file system that contains a list of private
+        keys that will be passed along with each transaction. This file should simply list each private key on a new
+        line by itself.
     </p>
 
     <p>
