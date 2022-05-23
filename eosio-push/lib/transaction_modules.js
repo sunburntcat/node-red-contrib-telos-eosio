@@ -19,42 +19,6 @@ async function push_trx(trx, tapos, api) {
 
 }
 
-async function push_presigned_trx(trx, signature) {
-    /*
-     NOTE:
-     trx is uint8array
-     signature is a string beginning with SIG_K
-
-     Suggestion for eosiot on-device signatures...
-       https://github.com/EOSIO/eosjs/blob/master/src/eosjs-api.ts
-         Function at Line 257 allows us to use the following function:
-            api.pushSignedTransaction
-    */
-    try {
-        const result = await api.pushSignedTransaction(
-            {
-                "transaction": trx,
-                "signatures": [signature]
-            } );
-        if (!result.processed.error_code) { // If endpoint didn't give error
-            console.log("Trx: " + result.transaction_id);
-            return 0;
-        } else {
-            console.log("API Endpoint gave the following eosio-based error:");
-            console.log(result);
-            return 1;
-        }
-    } catch (e) {
-        console.log("API Error while trying to send transaction.");
-        console.log(e);
-        console.log("Additional details shown below:");
-        console.log(e.json.error.details);
-        return 1;
-    }
-
-}
-
-
 module.exports = {
 
 
@@ -214,7 +178,43 @@ module.exports = {
 
     },
 
-    payload_to_blockchain: async function(account, actionName, payload, rpc, api) {
+    push_presigned_trx: async function(trx, signature, api) {
+        /*
+         NOTE:
+         trx is uint8array
+         signature is a string beginning with SIG_K
+
+         Suggestion for eosiot on-device signatures...
+           https://github.com/EOSIO/eosjs/blob/master/src/eosjs-api.ts
+             Function at Line 257 allows us to use the following function:
+                api.pushSignedTransaction
+        */
+        try {
+            const result = await api.pushSignedTransaction(
+                {
+                    "serializedTransaction": trx,
+                    "signatures": [signature],
+                    "serializedContextFreeData": ''
+                } );
+            if (!result.processed.error_code) { // If endpoint didn't give error
+                console.log("Trx: " + result.transaction_id);
+                return 0;
+            } else {
+                console.log("API Endpoint gave the following eosio-based error:");
+                console.log(result);
+                return 1;
+            }
+        } catch (e) {
+            console.log("API Error while trying to send transaction.");
+            console.log(e);
+            console.log("Additional details shown below:");
+            console.log(e.json.error.details);
+            return 1;
+        }
+
+    },
+
+    payload_to_blockchain: async function(account, actionName, permission, payload, rpc, api) {
 
 
         /* NOTE THE FOLLOWING CODE IS TEMPORARY FOR
@@ -256,7 +256,7 @@ module.exports = {
         trx.actions[0].name = actionName;
         trx.actions[0].authorization = [{
             "actor": account ,
-            "permission": "active"
+            "permission": permission
         }];
 
         // Simply set the data to the incoming payload
