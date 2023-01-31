@@ -86,7 +86,7 @@ module.exports = {
         return push_trx(trx, tapos, api);
 
     },
-
+    
     buy_ram: async function (payer, name, amountBytes, api) {
 
         // Buy a some RAM for the account
@@ -178,7 +178,7 @@ module.exports = {
 
     },
 
-    push_presigned_trx: async function(trx, signature, api) {
+    push_presigned_trx: async function(trx, sigs, api) {
         /*
          NOTE:
          trx is uint8array
@@ -190,12 +190,19 @@ module.exports = {
                 api.pushSignedTransaction
         */
         try {
-            const result = await api.pushSignedTransaction(
-                {
-                    "serializedTransaction": trx,
+                trx_json = {};
+                trx_json.packed_context_free_data = "";
+                trx_json.compression = "none";
+                trx_json.serializedTransaction = trx;
+                trx_json.signatures = sigs;
+                console.log(trx_json)
+            const result = await api.pushSignedTransaction(trx_json);
+                /*{
+                    "packed_trx": trx,
                     "signatures": [signature],
-                    "serializedContextFreeData": ''
-                } );
+                    "packed_context_free_data": '',
+                    "compression":"none
+                } );*/
             if (!result.processed.error_code) { // If endpoint didn't give error
                 console.log("Trx: " + result.transaction_id);
                 return 0;
@@ -213,8 +220,8 @@ module.exports = {
         }
 
     },
-
-    payload_to_blockchain: async function(account, actionName, permission, payload, rpc, api) {
+    
+    payload_to_blockchain: async function(account, actionName, authorization, payload, rpc, api) {
 
 
         /* NOTE THE FOLLOWING CODE IS TEMPORARY FOR
@@ -248,19 +255,32 @@ module.exports = {
 
 
         ///////////////////////////////////////////////
-
+        
         // Create actions payload
         var trx = {};
-        trx.actions = [{}];
-        trx.actions[0].account = account;
-        trx.actions[0].name = actionName;
-        trx.actions[0].authorization = [{
-            "actor": account ,
-            "permission": permission
-        }];
+        var payloads;
 
-        // Simply set the data to the incoming payload
-        trx.actions[0].data = payload;
+        if (Array.isArray(payload))
+            payloads = payload
+        else
+            payloads = [payload]
+
+        if (Array.isArray(authorization))
+            authorizations = authorization
+        else
+            authorizations = [authorization]
+
+        trx.actions = []
+        for (i = 0; i < payloads.length ; i++) {
+                let action = {}
+                action.account = account;
+                action.name = actionName;
+                action.authorization = authorizations;
+
+                // Simply set the data to the incoming payload
+                action.data = payloads[i];
+                trx.actions.push( action );
+        }
 
         const tapos = {};
         tapos.blocksBehind = 3;
