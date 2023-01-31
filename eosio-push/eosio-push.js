@@ -38,11 +38,6 @@ module.exports = function(RED) {
         node.contract = config.contract;
         node.actionname = config.actionname;
 
-        if (config.permission === "") {
-            node.permission = "active";
-        } else
-            node.permission = config.permission;
-
         // Initialize eojs API
         const signatureProvider = new JsSignatureProvider(privkeys);
         const rpc = new JsonRpc(node.endpoint, {fetch});
@@ -87,41 +82,56 @@ module.exports = function(RED) {
                 if (node.inputtype === 'trx') {
 
                     let trx = msg.payload.packed_trx;
-                    let sig = msg.payload.signatures[0];
+                    let sigs = msg.payload.signatures;
 
-                    await trans.push_presigned_trx(trx, sig, api);
-                }
-
-                let contractName, actionName;
-
-                if (node.actionname === "") {  // If left blank in the settings
-                    actionName = msg.action;
-                } else {
-                    actionName = node.actionname;
-                }
-
-                if (node.contract === "") {  // If left blank in the settings
-                    contractName = msg.contract;
-                } else {
-                    contractName = node.contract;
-                }
-
-                try {
-                    await trans.payload_to_blockchain(contractName,
-                                                    actionName,
-                                                    node.permission,
-                                                    msg.payload,
-                                                    rpc,
-                                                    api);
+                    await trans.push_presigned_trx(trx, sigs, api);
                     node.send(msg); // continue sending message through to outputs
-                } catch (e) {
-                    console.log("API Error while trying to send transaction.");
-                    console.log(e.message); // Print any errors
-
-                    let message = e.message;
-                    let tmp = message.indexOf(':');
-                    this.error(message.substr(tmp+2),msg); // Forward any errors to user
                 }
+                else {
+
+                    let contractName;
+                    let actionName;
+                    let authorization = {};
+
+                    if (node.actionname === "") {  // If left blank in the settings
+                        actionName = msg.action;
+                    } else {
+                        actionName = node.actionname;
+                    }
+
+                    if (node.contract === "") {  // If left blank in the settings
+                        contractName = msg.contract;
+                    } else {
+                        contractName = node.contract;
+                    }
+
+                    if ( msg.hasOwnProperty('authorization') ) {  // If left blank in the settings
+                        authorization = msg.authorization;
+                    } else {
+                        authorization.actor = contractName;
+                        if (config.permission === "")
+                            authorization.permission = "active";
+                        else
+                            authorization.permission = config.permission;
+                    }
+
+                    try {
+                        await trans.payload_to_blockchain(contractName,
+                                                        actionName,
+                                                        authorization,
+                                                        msg.payload,
+                                                        rpc,
+                                                        api);
+                        node.send(msg); // continue sending message through to outputs
+                    } catch (e) {
+                        console.log("API Error while trying to send transaction.");
+                        console.log(e.message); // Print any errors
+
+                        let message = e.message;
+                        let tmp = message.indexOf(':');
+                        this.error(message.substr(tmp+1),msg); // Forward any errors to user
+                    }
+                } // end check for inputtype (trx vs regular payload)
 
             });
         })(); // End of async
