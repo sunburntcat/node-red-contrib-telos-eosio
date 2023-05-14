@@ -4,7 +4,8 @@
   "description": "A Node-Red node designed to publish data to Telos or a different eosio blockchain",
   "main": "index.js",
   "dependencies": {
-    "eosjs": "20.0.3",
+    "elpp": "https://github.com/measurementearth/elpp-decoder.git",
+    "eosjs": "22.1.0",
     "lodash": "^4.17.20",
     "node-fetch": "^2.6.1",
     "util": "^0.12.3"
