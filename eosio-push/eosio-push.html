@@ -53,10 +53,12 @@
                     $("#node-input-contract-row").hide();
                     $("#node-input-actionname-row").hide();
                     $("#node-input-permission-row").hide();
+                    $("#node-input-elpptopic").show();
                 } else {
                     $("#node-input-contract-row").show();
                     $("#node-input-action-row").show();
                     $("#node-input-permission-row").show();
+                    $("#node-input-elpptopic").hide();
                 }
             });
         }
@@ -95,8 +97,13 @@
         <label for="node-input-inputtype"><i class="icon-tag"></i> Incoming Payload Type</label>
         <select type="text" id="node-input-inputtype" style="display: inline-block; vertical-align: middle; width:60%;">
             <option value="action"> Action Data </option>
-            <option value="trx"> Pre-Signed Transaction</option>
+            <option value="trx"> ELPP Transaction </option>
         </select>
+    </div>
+    <div class="form-row">
+        <small hidden id="node-input-elpptopic" style="margin-left: 100px">
+            Note: For multiple input names, pass using msg.topic
+        </small>
     </div>
     <div class="form-row" id="node-input-contract-row">
         <label for="node-input-contract"><i class="icon-tag"></i>Contract Name (Optional)</label>
@@ -158,7 +165,7 @@
     </p>
     <p>
         <code>
-<pre>
+    <pre>
 {
    < ... >
    contract: 'eosio.token',
@@ -174,7 +181,7 @@
    < ... >
 }
 </pre>
-        </code>
+    </code>
     </p>
     <p>
         When hard-coded into the eosio-push node's configuration, the contract and
@@ -182,15 +189,15 @@
     </p>
 
     <h3>Outputs</h3>
-        <p>
-            All error messages received by the blockchain will be thrown back by the node.
-        </p>
+    <p>
+        All error messages received by the blockchain will be thrown back by the node.
+    </p>
 
-        <p>
-            Unless a transaction error occurs, the transaction's ID will be sent to
-            console.log() and the original message will be forwarded to the output
-            end of the node.
-        </p>
+    <p>
+        Unless a transaction error occurs, the transaction's ID will be sent to
+        console.log() and the original message will be forwarded to the output
+        end of the node.
+    </p>
 
     <p>
 
