@@ -86,7 +86,7 @@ module.exports = {
         return push_trx(trx, tapos, api);
 
     },
-    
+
     buy_ram: async function (payer, name, amountBytes, api) {
 
         // Buy a some RAM for the account
@@ -178,84 +178,8 @@ module.exports = {
 
     },
 
-    push_presigned_trx: async function(trx, sigs, api) {
-        /*
-         NOTE:
-         trx is uint8array
-         signature is a string beginning with SIG_K
-
-         Suggestion for eosiot on-device signatures...
-           https://github.com/EOSIO/eosjs/blob/master/src/eosjs-api.ts
-             Function at Line 257 allows us to use the following function:
-                api.pushSignedTransaction
-        */
-        try {
-                trx_json = {};
-                trx_json.packed_context_free_data = "";
-                trx_json.compression = "none";
-                trx_json.serializedTransaction = trx;
-                trx_json.signatures = sigs;
-                console.log(trx_json)
-            const result = await api.pushSignedTransaction(trx_json);
-                /*{
-                    "packed_trx": trx,
-                    "signatures": [signature],
-                    "packed_context_free_data": '',
-                    "compression":"none
-                } );*/
-            if (!result.processed.error_code) { // If endpoint didn't give error
-                console.log("Trx: " + result.transaction_id);
-                return 0;
-            } else {
-                console.log("API Endpoint gave the following eosio-based error:");
-                console.log(result);
-                return 1;
-            }
-        } catch (e) {
-            console.log("API Error while trying to send transaction.");
-            console.log(e);
-            console.log("Additional details shown below:");
-            console.log(e.json.error.details);
-            return 1;
-        }
-
-    },
-    
     payload_to_blockchain: async function(account, actionName, authorization, payload, rpc, api) {
 
-
-        /* NOTE THE FOLLOWING CODE IS TEMPORARY FOR
-              GETTING THE NECESSARY LAUNCH ID
-         */
-        /*
-        let json = await rpc.get_table_rows({
-            json: true,                 // Get the response as json
-            code: account,           // Contract that we target
-            scope: account,          // Account that owns the data
-            table: 'launches',          // Table name
-            reverse: true,
-            limit: 100,                   // Here we limit to 1 to get only the single row with primary key equal to 'testacc'
-        });
-
-        if (json.rows.length>0) {
-            let maximum = 0;
-            let i;
-            for (i = 0; i < json.rows.length ; i++) {
-                let time = json.rows[i].unix_time;
-                if (time > maximum) {
-                    payload.launch_id = json.rows[i].launch_id;
-                    maximum = time;
-                }
-            }
-            //return json.rows[0].launch_number;
-        } else {
-            payload.launch_id = "";
-        }
-        */
-
-
-        ///////////////////////////////////////////////
-        
         // Create actions payload
         var trx = {};
         var payloads;
@@ -272,14 +196,14 @@ module.exports = {
 
         trx.actions = []
         for (i = 0; i < payloads.length ; i++) {
-                let action = {}
-                action.account = account;
-                action.name = actionName;
-                action.authorization = authorizations;
+            let action = {}
+            action.account = account;
+            action.name = actionName;
+            action.authorization = authorizations;
 
-                // Simply set the data to the incoming payload
-                action.data = payloads[i];
-                trx.actions.push( action );
+            // Simply set the data to the incoming payload
+            action.data = payloads[i];
+            trx.actions.push( action );
         }
 
         const tapos = {};
